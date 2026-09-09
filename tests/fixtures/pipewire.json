@@ -1,0 +1,17 @@
+[
+  {"id": 0, "type": "PipeWire:Interface:Core", "info": {"version": "1.6.8", "props": {}}},
+  {"id": 10, "type": "PipeWire:Interface:Metadata", "props": {"metadata.name": "settings"}, "metadata": [
+    {"subject": 0, "key": "clock.rate", "type": "", "value": 48000},
+    {"subject": 0, "key": "clock.quantum", "type": "", "value": 1024},
+    {"subject": 0, "key": "clock.force-quantum", "type": "", "value": 128},
+    {"subject": 0, "key": "clock.force-rate", "type": "", "value": 0},
+    {"subject": 0, "key": "clock.allowed-rates", "type": "", "value": "[44100,48000]"}
+  ]},
+  {"id": 11, "type": "PipeWire:Interface:Client", "info": {"props": {"application.name": "WirePlumber"}}},
+  {"id": 20, "type": "PipeWire:Interface:Device", "info": {"props": {"device.description": "Test USB Interface", "device.api": "alsa", "api.alsa.card": 1, "device.serial": "DO-NOT-EXPORT-THIS-SERIAL"}}},
+  {"id": 30, "type": "PipeWire:Interface:Node", "info": {"state": "suspended", "props": {"device.id": 20, "media.class": "Audio/Source", "node.description": "Test Input", "audio.channels": 2, "audio.rate": 48000}}},
+  {"id": 31, "type": "PipeWire:Interface:Node", "info": {"state": "running", "props": {"api.alsa.pcm.card": "1", "media.class": "Audio/Sink", "node.description": "Test Output", "audio.channels": 2}}},
+  {"id": 32, "type": "PipeWire:Interface:Node", "info": {"state": "running", "props": {"media.class": "Audio/Source/Virtual", "node.description": "Virtual Source"}}},
+  {"id": 40, "type": "PipeWire:Interface:Node", "info": {"props": {"media.class": "Midi/Bridge", "node.description": "Test MIDI Bridge"}}},
+  {"id": 41, "type": "PipeWire:Interface:Port", "info": {"direction": "input", "props": {"node.id": 40, "port.name": "Test Keyboard", "format.dsp": "8 bit raw midi"}}}
+]

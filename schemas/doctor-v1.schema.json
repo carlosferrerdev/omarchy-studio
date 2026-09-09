@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Omarchy Studio Doctor v1",
+  "type": "object",
+  "required": ["schema_version", "plugin_id", "plugin_version", "collected_at", "probes", "readiness", "advisories", "issues", "commands", "privacy"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "plugin_id": {"const": "carlosferrerdev.omarchy-studio"},
+    "plugin_version": {"type": "string"},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "privacy": {"type": "string"},
+    "probes": {
+      "type": "object",
+      "required": ["system", "cpu", "memory", "audio_engine", "pipewire", "hardware", "midi", "realtime", "configuration"],
+      "additionalProperties": {"type": "object"},
+      "properties": {
+        "system": {"type": "object", "required": ["omarchy_detected", "omarchy_version", "integration_compatibility", "linux", "architecture", "kernel"],
+          "properties": {"omarchy_detected": {"type": "boolean"}, "omarchy_version": {"type": ["string", "null"]},
+            "integration_compatibility": {"enum": ["TARGET_VERSION", "UNKNOWN", "UNSUPPORTED"]}, "linux": {"type": "boolean"}}},
+        "pipewire": {"type": "object", "required": ["status", "server_reachable", "snapshot_complete", "settings", "devices", "nodes", "midi_ports", "xruns"],
+          "properties": {"status": {"enum": ["OK", "PARTIAL", "UNKNOWN"]}, "server_reachable": {"type": ["boolean", "null"]},
+            "snapshot_complete": {"type": "boolean"}, "settings": {"type": "object"}, "devices": {"type": "array"}, "nodes": {"type": "array"},
+            "observed_sample_rate": {"type": ["integer", "null"]}, "observed_quantum": {"type": ["integer", "null"]}, "xruns": {"type": ["integer", "null"]}}},
+        "hardware": {"type": "object", "required": ["cards", "scan_complete", "alsa_present"],
+          "properties": {"scan_complete": {"type": "boolean"}, "alsa_present": {"type": ["boolean", "null"]}, "cards": {"type": "array", "items": {"$ref": "#/$defs/card"}}}},
+        "realtime": {"type": "object", "required": ["runtime_rt_observed", "threads", "doctor_limits", "daemon_limits"],
+          "properties": {"runtime_rt_observed": {"type": ["boolean", "null"]}, "threads": {"type": "array"}}}
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "required": ["model_version", "score", "maximum", "possible_score", "coverage_percent", "status", "checks", "limitation"],
+      "properties": {
+        "model_version": {"const": "0.1"},
+        "score": {"type": "integer", "minimum": 0, "maximum": 100, "multipleOf": 10},
+        "maximum": {"const": 100},
+        "possible_score": {"type": "integer", "minimum": 0, "maximum": 100, "multipleOf": 10},
+        "coverage_percent": {"type": "integer", "minimum": 0, "maximum": 100, "multipleOf": 10},
+        "status": {"enum": ["FOUNDATION_CHECKS_PASSED", "INCOMPLETE", "NEEDS_ATTENTION"]},
+        "checks": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"$ref": "#/$defs/check"}},
+        "limitation": {"type": "string"}
+      }
+    },
+    "advisories": {"type": "array", "items": {"type": "object", "required": ["id", "message", "recommendation"]}},
+    "issues": {"type": "array", "items": {"type": "object", "required": ["source", "reason"]}},
+    "commands": {"type": "array", "items": {"type": "object", "required": ["argv", "status", "returncode"],
+      "properties": {"argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "status": {"enum": ["ok", "missing", "failed", "unavailable", "timeout", "output_limit", "budget_exhausted"]},
+        "returncode": {"type": ["integer", "null"]}}}}
+  },
+  "$defs": {
+    "check": {"type": "object", "required": ["id", "label", "weight", "status", "evidence", "recommendation"],
+      "properties": {"id": {"type": "string"}, "label": {"type": "string"}, "weight": {"const": 10},
+        "status": {"enum": ["PASS", "FAIL", "UNKNOWN"]}, "evidence": {"type": "string"}, "recommendation": {"type": "string"}}},
+    "card": {"type": "object", "required": ["alsa_card", "name", "driver", "status", "support_status", "physical", "pcm_endpoints", "active_hw_params"],
+      "properties": {"alsa_card": {"type": "integer", "minimum": 0}, "name": {"type": ["string", "null"]}, "driver": {"type": ["string", "null"]},
+        "status": {"const": "detected"}, "physical": {"type": ["boolean", "null"]},
+        "support_status": {"enum": ["OFFICIALLY SUPPORTED", "NATIVE", "CLASS COMPLIANT", "COMMUNITY SUPPORTED", "COMPATIBILITY LAYER", "EXPERIMENTAL", "UNSUPPORTED", "UNKNOWN"]},
+        "inputs": {"type": ["integer", "null"]}, "outputs": {"type": ["integer", "null"]},
+        "sample_rates": {"type": ["array", "null"]}, "bit_depths": {"type": ["array", "null"]},
+        "pcm_endpoints": {"type": "array"}, "active_hw_params": {"type": "array"}}}
+  }
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Invoked by the widget inside the user's preferred terminal. No shell strings.
+set -u
+studio_bin=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+"$studio_bin/omarchy-studio" doctor
+studio_rc=$?
+if [[ -t 0 ]]; then
+  printf '\nPress Enter to close. '
+  IFS= read -r _studio_reply || true
+fi
+exit "$studio_rc"

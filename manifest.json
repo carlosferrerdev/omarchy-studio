@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "carlosferrerdev.omarchy-studio",
+  "name": "Omarchy Studio",
+  "version": "0.1.0",
+  "author": "Omarchy Studio contributors",
+  "license": "MIT",
+  "description": "Read-only music production diagnostics: Studio Doctor.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": {
+    "displayName": "Studio Doctor",
+    "category": "Audio",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
