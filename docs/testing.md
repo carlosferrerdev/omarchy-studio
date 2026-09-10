@@ -55,6 +55,15 @@ symlinks e links locais da documentação. O schema draft 2020-12 e três relat�
 (fixture completa, fixture vazia e sistema local) foram validados com jsonschema
 4.19.2 disponível no ambiente. Nenhum resultado de CI remoto é reivindicado.
 
+Registro local em 2026-09-10 para os padrões de áudio: 76 testes unitários e 7 de
+integração passaram em Python 3.14.4. O teste do validador oficial foi skipped por
+ausência de `OMARCHY_UPSTREAM` nesta execução. Os 21 testes novos cobrem resolução
+dos padrões, preferências salvas, incerteza, permissões, duplicatas, seleção
+virtual/monitor, remote alternativo e privacidade. O schema draft 2020-12 aceitou
+seis relatórios (quatro estados de seleção, v1 anterior e CLI local) e rejeitou
+combinações contraditórias de status/ID. Na CLI local, os dois padrões ficaram
+`UNKNOWN`; o resultado não valida uma sessão PipeWire nem hardware real.
+
 Qualquer release apresentada como validada para músicos deverá anexar evidências
 dos gates de sessão/hardware, sem transformar testes sintéticos em matriz de
 compatibilidade. Novos coletores devem adicionar fixtures de origem conhecida e

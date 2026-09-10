@@ -3,6 +3,9 @@ import json
 from .common import integer, mapping, sequence, service, string, version
 
 
+DEFAULT_AUDIO_KEYS = {"capture": "default.audio.source", "playback": "default.audio.sink"}
+
+
 class AudioEngineProbe:
     def __init__(self, host, packages):
         self.host, self.packages = host, packages
@@ -24,6 +27,9 @@ class PipeWireProbe:
         result = self.host.run("pw-dump", "--no-colors")
         data = {"status": "UNKNOWN", "server_reachable": None, "server_version": None,
                 "settings": {}, "devices": [], "nodes": [], "midi_ports": [],
+                "default_nodes": {direction: {"status": "UNKNOWN", "node_id": None,
+                    "source": f"metadata.name=default; subject=0; {key}"}
+                    for direction, key in DEFAULT_AUDIO_KEYS.items()},
                 "wireplumber_client": None, "snapshot_complete": False,
                 "observed_sample_rate": None, "observed_quantum": None, "xruns": None,
                 "source": "pw-dump --no-colors",
@@ -40,6 +46,7 @@ class PipeWireProbe:
             self.host.issue("pw-dump", "unexpected_output")
             return data
         complete = True
+        default_metadata, named_nodes = [], []
         for obj in objects:
             info = mapping(obj.get("info"))
             props = mapping(info.get("props")) or mapping(obj.get("props"))
@@ -67,6 +74,8 @@ class PipeWireProbe:
                             data["settings"][key] = [n for v in sequence(value) if (n := integer(v, minimum=1))]
                         else:
                             data["settings"][key] = integer(value)
+            elif kind == "Metadata" and props.get("metadata.name") == "default":
+                default_metadata.append(obj)
             elif kind == "Client" and props.get("application.name") == "WirePlumber":
                 data["wireplumber_client"] = True
             elif kind in ("Node", "Device"):
@@ -80,6 +89,10 @@ class PipeWireProbe:
                                      "api": string(props.get("device.api")),
                                      "audio_channels": integer(props.get("audio.channels"), minimum=1),
                                      "audio_rate": integer(props.get("audio.rate"), minimum=1)})
+                if kind == "Node":
+                    # node.name can embed a USB serial. Use it only for matching,
+                    # never export it or a raw metadata value in the report.
+                    named_nodes.append((string(props.get("node.name")), data[target][-1]))
             elif kind == "Port":
                 # port.control alone is not evidence of MIDI.
                 if "midi" in (string(props.get("format.dsp")) or "").lower():
@@ -96,4 +109,52 @@ class PipeWireProbe:
             self.host.issue("pw-dump", "core_not_visible")
         if not complete:
             self.host.issue("pw-dump", "incomplete_object_information")
+        self._collect_default_nodes(data, default_metadata, named_nodes)
         return data
+
+    def _collect_default_nodes(self, data, metadata_objects, named_nodes):
+        if data["server_reachable"] is not True or not metadata_objects:
+            return
+        source = "pw-dump default metadata"
+        if len(metadata_objects) != 1:
+            self.host.issue(source, "ambiguous_default_metadata")
+            return
+        metadata = metadata_objects[0]
+        entries = metadata.get("metadata")
+        if not isinstance(entries, list) or not all(
+                isinstance(e, dict) and type(e.get("subject")) is int and e["subject"] >= 0
+                and string(e.get("key")) is not None for e in entries):
+            self.host.issue(source, "incomplete_default_metadata")
+            return
+        for direction, key in DEFAULT_AUDIO_KEYS.items():
+            default = data["default_nodes"][direction]
+            selected = [e for e in entries if e["subject"] == 0 and e["key"] == key]
+            if not selected:
+                # An absent key is negative evidence only with explicit read
+                # access to this metadata object. Saved preferences do not count.
+                if "r" in sequence(metadata.get("permissions")):
+                    default["status"] = "NOT_SET"
+                continue
+            if len(selected) != 1:
+                self.host.issue(source + " " + key, "ambiguous_default_selection")
+                continue
+            entry = selected[0]
+            value = entry.get("value")
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except (ValueError, RecursionError):
+                    value = None
+            name = string(mapping(value).get("name"))
+            if entry.get("type") != "Spa:String:JSON" or name is None:
+                self.host.issue(source + " " + key, "invalid_default_selection")
+                continue
+            matches = [node for node_name, node in named_nodes if node_name == name]
+            # A monitor/virtual node can be selected too. This describes the
+            # published default, independently of the physical hardware score.
+            if (len(matches) == 1 and matches[0]["id"] is not None
+                    and (matches[0]["media_class"] or "").startswith("Audio/")
+                    and sum(n["id"] == matches[0]["id"] for n in data["nodes"]) == 1):
+                default.update(status="RESOLVED", node_id=matches[0]["id"])
+            else:
+                default["status"] = "UNRESOLVED"

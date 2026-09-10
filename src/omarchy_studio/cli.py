@@ -65,6 +65,19 @@ def render(report):
     for node in p["pipewire"]["nodes"]:
         if (node["media_class"] or "").startswith("Audio/"):
             lines.append(f"  {display(node['media_class'])}: {display(node['description'])} [{display(node['state'])}]")
+    lines.extend(["", "DEFAULT AUDIO — current PipeWire selection"])
+    for direction, label in (("capture", "Input"), ("playback", "Output")):
+        default = p["pipewire"].get("default_nodes", {}).get(direction, {})
+        status = default.get("status", "UNKNOWN")
+        node = next((n for n in p["pipewire"]["nodes"] if n["id"] == default.get("node_id")), None)
+        if status == "RESOLVED" and node is not None:
+            lines.append(f"{label}: {display(node['description'])} (node {node['id']}, "
+                         f"{display(node['media_class'])}) [{display(node['state'])}]")
+        else:
+            detail = {"NOT_SET": "no default published", "UNRESOLVED": "selected node could not be uniquely matched",
+                      "UNKNOWN": "insufficient evidence"}.get(status, "insufficient evidence")
+            lines.append(f"{label}: {status} ({detail})")
+    lines.append("Applications may select different devices; defaults do not prove an active recording/playback route.")
     lines.extend(["", "AUDIO HARDWARE"])
     for card in p["hardware"]["cards"]:
         lines.extend([f"{display(card['name'])} (ALSA card {card['alsa_card']}) — detected",

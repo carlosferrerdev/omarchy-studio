@@ -20,6 +20,8 @@
         "pipewire": {"type": "object", "required": ["status", "server_reachable", "snapshot_complete", "settings", "devices", "nodes", "midi_ports", "xruns"],
           "properties": {"status": {"enum": ["OK", "PARTIAL", "UNKNOWN"]}, "server_reachable": {"type": ["boolean", "null"]},
             "snapshot_complete": {"type": "boolean"}, "settings": {"type": "object"}, "devices": {"type": "array"}, "nodes": {"type": "array"},
+            "default_nodes": {"type": "object", "required": ["capture", "playback"],
+              "properties": {"capture": {"$ref": "#/$defs/default_node"}, "playback": {"$ref": "#/$defs/default_node"}}},
             "observed_sample_rate": {"type": ["integer", "null"]}, "observed_quantum": {"type": ["integer", "null"]}, "xruns": {"type": ["integer", "null"]}}},
         "hardware": {"type": "object", "required": ["cards", "scan_complete", "alsa_present"],
           "properties": {"scan_complete": {"type": "boolean"}, "alsa_present": {"type": ["boolean", "null"]}, "cards": {"type": "array", "items": {"$ref": "#/$defs/card"}}}},
@@ -49,6 +51,12 @@
         "returncode": {"type": ["integer", "null"]}}}}
   },
   "$defs": {
+    "default_node": {"type": "object", "required": ["status", "node_id", "source"],
+      "properties": {"status": {"enum": ["RESOLVED", "UNRESOLVED", "NOT_SET", "UNKNOWN"]},
+        "node_id": {"type": ["integer", "null"], "minimum": 0}, "source": {"type": "string"}},
+      "if": {"properties": {"status": {"const": "RESOLVED"}}},
+      "then": {"properties": {"node_id": {"type": "integer", "minimum": 0}}},
+      "else": {"properties": {"node_id": {"type": "null"}}}},
     "check": {"type": "object", "required": ["id", "label", "weight", "status", "evidence", "recommendation"],
       "properties": {"id": {"type": "string"}, "label": {"type": "string"}, "weight": {"const": 10},
         "status": {"enum": ["PASS", "FAIL", "UNKNOWN"]}, "evidence": {"type": "string"}, "recommendation": {"type": "string"}}},

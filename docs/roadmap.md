@@ -20,6 +20,12 @@ fundação de áudio, tuning ou instalação de software esteja concluída.
 O resultado esperado dessas fases é a estação Linux nativa funcional. O Doctor
 fornece evidência para elas, sem instalar DAWs, plugins ou aplicar tuning em 0.1.
 
+Incremento do Doctor neste checkout: entrada e saída padrão do PipeWire aparecem
+no texto e no JSON, com estados explícitos de incerteza e avisos sem impacto no
+score. Há cobertura sintética para seleção atual versus preferência salva,
+metadata inacessível/malformada, ambiguidades e privacidade dos nomes internos.
+A validação em sessão Omarchy e hardware real continua pendente.
+
 ## Médio prazo — compatibilidade medida
 
 | Fase | Entrega planejada |

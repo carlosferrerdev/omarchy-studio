@@ -29,6 +29,9 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(report["plugin_version"], "0.1.0")
         self.assertEqual(len(report["readiness"]["checks"]), 10)
+        for default in report["probes"]["pipewire"]["default_nodes"].values():
+            self.assertEqual(default["status"], "UNKNOWN")
+            self.assertIsNone(default["node_id"])
         self.assertIn("DEBUG", result.stderr)
 
     def test_strict_exit_status_keeps_valid_json(self):
@@ -41,6 +44,9 @@ class CliIntegrationTests(unittest.TestCase):
         result = self.run_cli("doctor")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(before, sorted(self.home.rglob("*")))
+        self.assertIn("DEFAULT AUDIO", result.stdout)
+        self.assertIn("Input: UNKNOWN", result.stdout)
+        self.assertIn("Output: UNKNOWN", result.stdout)
 
     def test_unsupported_mutation_command(self):
         result = self.run_cli("setup", "--dry-run")

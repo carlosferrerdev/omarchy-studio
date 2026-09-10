@@ -87,4 +87,14 @@ def advisories(probes):
     if probes["pipewire"].get("custom_remote"):
         add("custom_remote", "PipeWire remote/runtime environment override detected.",
             "Physical graph correlation is UNKNOWN because the dump may describe a different instance.")
+    for direction, default in probes["pipewire"].get("default_nodes", {}).items():
+        if default["status"] == "UNRESOLVED":
+            add("default_" + direction + "_unresolved",
+                f"The default {direction} selection could not be matched to a unique audio node in this snapshot.",
+                "Inspect the selected device in the current PipeWire instance and run Doctor again; "
+                "hotplug or incomplete visibility may explain the mismatch. Check the DAW's own routing too.")
+        elif default["status"] == "NOT_SET":
+            add("default_" + direction + "_not_set", f"No default {direction} selection is published in PipeWire metadata.",
+                "Review the session's default audio device if applications rely on it; "
+                "a DAW may select its own devices. No score penalty.")
     return result

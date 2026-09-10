@@ -65,6 +65,11 @@ não é requisito mínimo de uma DAW. `powersave`/`conservative` pedem medição
 sem assumir que `intel_pstate` precise de governor performance. Não se exige
 kernel RT, rtkit, grupo realtime, memlock ilimitado ou pipewire-jack para todos.
 
+Os padrões de entrada/saída em `pipewire.default_nodes` são observações adicionais.
+Seleção não publicada ou sem correspondência única gera aviso, sem penalizar o
+score: aplicações podem escolher seus próprios dispositivos. A resolução de um
+padrão virtual ou de um monitor também não concede pontos de hardware físico.
+
 ## Limitações e evolução
 
 O snapshot não mede carga DSP, estabilidade USB, drift entre interfaces, latência

@@ -31,6 +31,38 @@ podem ganhar detalhes aditivos; consumidores devem ignorar campos desconhecidos.
 Mudanças incompatíveis exigem nova versão de envelope. O schema não substitui os
 testes semânticos de pontuação e correlação.
 
+## Entrada e saída padrão
+
+`probes.pipewire.default_nodes` é uma extensão aditiva do envelope v1. Contém
+`capture` e `playback`, cada um com `status`, `node_id` e `source`. Relatórios v1
+anteriores podem omitir esse objeto. O identificador remete a `probes.pipewire.nodes`
+do mesmo snapshot; não é uma identidade persistente de hardware.
+
+| `status` | Significado | `node_id` |
+|---|---|---|
+| `RESOLVED` | seleção publicada associada a um único node de áudio observado | ID inteiro |
+| `UNRESOLVED` | seleção válida, sem correspondência única com um node de áudio identificável | `null` |
+| `NOT_SET` | chave de seleção ausente em metadata `default` com permissão explícita de leitura | `null` |
+| `UNKNOWN` | servidor/metadata não observado, estrutura inválida ou seleção ambígua | `null` |
+
+A coleta consulta apenas `default.audio.source` e `default.audio.sink`, no subject
+inteiro `0` do objeto Metadata chamado `default`. Aceita `Spa:String:JSON` com
+objeto `value` ou JSON em string. Preferências `default.configured.*`, outros
+subjects e outros namespaces não substituem a seleção atual. O formato segue o
+[serializador pw-dump 1.6.8](https://github.com/PipeWire/pipewire/blob/1.6.8/src/tools/pw-dump.c)
+e a [publicação de defaults do WirePlumber 0.5.17](https://github.com/PipeWire/wireplumber/blob/0.5.17/src/scripts/default-nodes/apply-default-node.lua).
+
+O nome interno `node.name` serve apenas para correlação em memória: ele pode
+conter serial USB e não é incluído no JSON, texto ou erros. O relatório reutiliza
+as descrições dos nodes já coletadas. Campos arbitrários de metadata são descartados.
+
+Uma seleção resolvida pode apontar para um dispositivo virtual, monitor de saída
+ou node suspenso. O estado descreve a associação da seleção, sem comprovar captura,
+reprodução, ligação de uma aplicação ou natureza física. `UNRESOLVED` também pode
+ocorrer por hotplug ou visibilidade incompleta; não afirma que o dispositivo foi
+desconectado. Um remote alternativo descreve os padrões desse grafo consultado.
+As regras existentes de correlação física e o modelo de pontuação 0.1 permanecem.
+
 ## Semântica da incerteza
 
 `null` significa UNKNOWN, não zero ou falso. Booleanos distinguem evidência

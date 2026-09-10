@@ -82,6 +82,8 @@ Veja [ciclo de vida](docs/lifecycle.md) antes de fixar versões ou fazer rollbac
 - CPU, topologia disponível, políticas de frequência, governor e memória.
 - Pacotes e serviços PipeWire, WirePlumber, compatibilidade PulseAudio/ALSA/JACK.
 - Grafo JSON do PipeWire, dispositivos, sources, sinks e metadados de clock.
+- Entrada e saída padrão publicadas no PipeWire, com avisos quando a seleção não
+  puder ser associada a um node observado ou não estiver publicada.
 - Políticas e prioridades por thread do PipeWire, limites do daemon e do Doctor,
   rtkit e pacotes de privilégios, sem tentar conceder realtime.
 - Placas ALSA, identidade USB pelo sysfs, driver e parâmetros PCM ativos.
@@ -93,6 +95,13 @@ suficiente. Detectar um dispositivo não comprova suporte oficial ou todos seus
 recursos. Sample rate/quantum configurados não são medidas do grafo em execução;
 XRUNs, latência de ida e volta e capacidades completas ficam desconhecidos em 0.1.
 MIDI e JACK são opcionais para o checklist de captura/reprodução nativa.
+
+A seção **DEFAULT AUDIO** mostra a seleção padrão atual de entrada e saída, com
+nome descritivo e estado do node. Esses padrões podem ser diferentes dos
+dispositivos escolhidos dentro da DAW. A ausência da informação é `UNKNOWN`;
+`NOT_SET` indica chave ausente em metadata com leitura autorizada, e `UNRESOLVED`
+indica uma seleção que não pôde ser associada a um único node de áudio na coleta.
+Essas observações geram avisos sem alterar a pontuação do checklist.
 
 ## Desenvolvimento
 
