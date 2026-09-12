@@ -18,6 +18,8 @@ After publication, installation uses `omarchy plugin add <actual-repository-url>
 
 Use the **Qt 6** qmllint (`/usr/lib/qt6/bin/qmllint` on this Arch baseline); the unqualified `qmllint` executable belongs to Qt 5 here. Provide an import root containing `qs` linked to `$OMARCHY_PATH/shell` outside the plugin checkout. Qt 6 lint returns success with upstream metadata warnings for `Style.font` and `QProcess::ExitStatus`; the actual QML execution test covers those bindings. The 0.1.1 status panel and Doctor action have been reviewed under the real host on the current theme. Comprehensive light/dark and bar-orientation coverage remains pending.
 
-## Updating from 0.1.0
+The 0.1.2 sampler row and Doctor action were also visually reviewed in the installed shell. The live audio graph was idle; active and multiple-driver presentation is covered by synthetic model tests, not a physical recording test. The current sampler adds roughly one second to an explicit refresh; actions remain disabled while collection is in progress.
 
-Update the installed checkout through `omarchy plugin update io.github.carlosferrerdev.omarchy-studio`. This updates CLI and QML together to schema 2. On the tested Omarchy release, a rescan retained old QML components during this upgrade; if the popup rejects the new report despite the CLI working, run `omarchy restart shell` to reload it. Studio does not restart the shell automatically. The plugin uses its installed checkout, so editing the source repository alone does not update the running CLI.
+## Updating installed code
+
+Update the installed checkout through `omarchy plugin update io.github.carlosferrerdev.omarchy-studio`. This updates CLI and QML together. On the tested Omarchy release, a rescan retained old QML components during both the schema 2 upgrade and the 0.1.2 update; if the popup rejects the new report or retains an old layout despite the CLI working, run `omarchy restart shell` to reload it. Studio does not restart the shell automatically. The plugin uses its installed checkout, so editing the source repository alone does not update the running CLI.

@@ -25,6 +25,8 @@ During the schema transition, the running shell retained old QML components afte
 
 Active driver sampling is implemented in 0.1.2: a bounded sampler preserves multiple independent drivers and idle behavior. Synthetic fixtures cover active clocks and failure cases; passive live observation confirms idle handling. The CLI and QML distinguish these observations from clock settings. Never label `pw-top` ERR as a pure hardware XRUN counter; its documented semantics include errors. Round-trip latency remains unmeasured without an explicit measurement method.
 
+Validation on 2026-09-12: all foundation checks, 23 sampler assertions, schema validation of active/idle reports, operational-health regression checks and UI model checks pass. The isolated Quickshell test consumes the real CLI, and Qt 6 lint completes with the previously documented upstream metadata warnings. The official plugin validator accepts 0.1.2. The installed status panel and Doctor action were reviewed after the official shell restart loaded the new components. No audio configuration or streams were changed. Active sampling under a sustained musical workload remains the next hardware validation task.
+
 Then validate a musical workflow with available physical hardware: playback, user-authorized recording, interface reconnection, and MIDI source/destination enumeration. Hardware tests remain opt-in. Do not start recording, install a DAW or disconnect devices automatically. Convert observed failures into redacted synthetic fixtures.
 
 Only after these observations are reliable should configuration work begin with a reviewable `setup --dry-run` plan and rollback design.
