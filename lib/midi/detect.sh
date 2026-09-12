@@ -5,16 +5,17 @@ studio_midi_parse() {
   jq -Rs --arg direction "$direction" '
     reduce (split("\n")[]) as $line ({client:null,ports:[]};
       if ($line | test("^client [0-9]+:")) then
-        .client = (try ($line | capture("^client (?<id>[0-9]+): '\''(?<name>.*)'\'' \\[(?<details>.*)\\]$")) catch null)
+        .client = ((try ($line | capture("^client (?<id>[0-9]+): '\''(?<name>.*)'\'' \\[(?<details>.*)\\]$")) catch null) // null)
+        | if .client == null then error("Invalid ALSA client header") else . end
       elif .client != null and ($line | test("^\\s+[0-9]+ '\''")) then
-        (try ($line | capture("^\\s+(?<port>[0-9]+) '\''(?<name>.*)'\''\\s*$")) catch null) as $port
-        | if $port == null then . else
+        ((try ($line | capture("^\\s+(?<port>[0-9]+) '\''(?<name>.*)'\''\\s*$")) catch null) // null) as $port
+        | if $port == null then error("Invalid ALSA port") else
           .ports += [{client:(.client.id|tonumber),port:($port.port|tonumber),
             client_name:.client.name,name:($port.name|sub("\\s+$";"")),
             kind:(if .client.id == "0" or (.client.id == "14" and .client.name == "Midi Through") then "virtual"
                   elif (.client.details|test("(^|,)card=[0-9]+(,|$)")) then "hardware" else "unknown" end),
             directions:[$direction]}] end
-      else . end) | .ports'
+      elif ($line | test("^\\s*$")) then . else error("Unexpected ALSA sequencer output") end) | .ports'
 }
 
 studio_midi() {
@@ -32,7 +33,7 @@ studio_midi() {
   if [[ $STUDIO_PW_REACHABLE == "true" ]]; then
     pipewire_ports=$(jq '[.[] | select(.type == "PipeWire:Interface:Port") | . as $port | .info.props
       | select(.["format.dsp"]? | type == "string" and test("midi";"i"))
-      | {id:$port.id,name:(.["port.name"] // "Unknown MIDI port"),
+      | {id:$port.id,name:(if (.["port.name"]|type) == "string" then .["port.name"] else "Unknown MIDI port" end),
          direction:(if .["port.direction"] == "out" then "source" elif .["port.direction"] == "in" then "destination" else "unknown" end)}]' \
       <<<"$STUDIO_PW_DUMP" 2>/dev/null) || pipewire_ports='[]'
   fi

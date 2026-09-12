@@ -53,6 +53,8 @@ studio_run() {
       case "$scenario" in
         empty | missing) return 0 ;;
         malformed) printf 'unexpected output\n' ;;
+        malformed_client) printf 'client 24: broken header\n' ;;
+        malformed_port) printf "client 24: 'Controller' [type=kernel,card=2]\n    0 'unterminated\n" ;;
         *) if [[ $2 == "-i" ]]; then cat "$fixtures/midi-source.txt"; else cat "$fixtures/midi-destination.txt"; fi ;;
       esac
       ;;
@@ -93,6 +95,10 @@ scenario=malformed
 studio_audio_snapshot
 assert_json "$(studio_audio)" '.pipewire.reachable == false' 'malformed PipeWire output does not crash'
 assert_json "$(studio_midi)" '.status == "unknown"' 'unexpected MIDI output never claims an empty inventory'
+scenario=malformed_client
+assert_json "$(studio_midi)" '.status == "unknown"' 'malformed MIDI client headers cannot produce false success'
+scenario=malformed_port
+assert_json "$(studio_midi)" '.status == "unknown"' 'malformed MIDI port records cannot produce false success'
 scenario=wrong_shape
 studio_audio_snapshot
 assert_json "$(studio_audio)" '.pipewire.reachable == false' 'structurally invalid PipeWire JSON remains unknown'
@@ -122,3 +128,15 @@ assert_json "$(<"$scratch/report")" '.command == "doctor" and .schema_version ==
 rm "$scratch/bin/jq"
 if PATH="$scratch/bin" "$STUDIO_ROOT/bin/omarchy-studio" status --json >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 3 && ! -s "$scratch/out" ]]; fi
 printf 'All %s JSON assertions and CLI argument/exit checks passed.\n' "$count"
+
+# Exercise the real timeout and stderr boundary outside the simulated collectors.
+(
+  source "$STUDIO_ROOT/lib/core/probe.sh"
+  started=$SECONDS
+  if studio_run sleep 10; then exit 1; else [[ $? == 124 ]]; fi
+  ((SECONDS - started < 5))
+  verbose=1
+  if studio_run bash -c 'echo PRIVATE-STDERR >&2; exit 9' 2>"$scratch/probe-error"; then exit 1; else [[ $? == 9 ]]; fi
+  [[ $(<"$scratch/probe-error") != *PRIVATE-STDERR* ]]
+)
+printf 'ok - real probes enforce deadlines and suppress raw stderr\n'

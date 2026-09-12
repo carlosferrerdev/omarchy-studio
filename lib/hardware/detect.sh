@@ -18,7 +18,7 @@ studio_hardware() {
      | select(.["media.class"] == "Audio/Device")
      | {name:((.["device.description"]|text) // (.["device.product.name"]|text) // "Unknown audio device"),
         vendor:(.["device.vendor.name"]|text),model:(.["device.product.name"]|text),transport:(.["device.bus"]|text),
-        alsa_card:((try (.["api.alsa.card"]|tonumber) catch null) // null),
+        alsa_card:((try (.["api.alsa.card"]|tonumber|select(. >= 0 and floor == .)) catch null) // null),
         pipewire_device:$device.id,source:"pw-dump"}]' <<<"$STUDIO_PW_DUMP" 2>/dev/null); then
     pw_state=ok
   else
