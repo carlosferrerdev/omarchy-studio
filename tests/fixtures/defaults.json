@@ -1,0 +1,12 @@
+[
+  {"id":0,"type":"PipeWire:Interface:Core"},
+  {"id":1,"type":"PipeWire:Interface:Metadata","props":{"metadata.name":"default"},"metadata":[
+    {"subject":0,"key":"default.audio.sink","value":{"name":"output.PRIVATE-SERIAL"}},
+    {"subject":0,"key":"default.audio.source","value":"{\"name\":\"input.PRIVATE-SERIAL\"}"},
+    {"subject":0,"key":"default.configured.audio.sink","value":{"name":"remembered.output"}}
+  ]},
+  {"id":10,"type":"PipeWire:Interface:Device","info":{"props":{"media.class":"Audio/Device"}}},
+  {"id":20,"type":"PipeWire:Interface:Node","info":{"state":"suspended","props":{"media.class":"Audio/Sink","node.name":"output.PRIVATE-SERIAL","node.description":"Studio Output","device.id":10}}},
+  {"id":21,"type":"PipeWire:Interface:Node","info":{"state":"idle","props":{"media.class":"Audio/Source","node.name":"input.PRIVATE-SERIAL","node.description":"Studio Input","device.id":"10"}}},
+  {"id":22,"type":"PipeWire:Interface:Node","info":{"state":"running","props":{"media.class":"Audio/Sink","node.name":"remembered.output","node.description":"Old Preference"}}}
+]

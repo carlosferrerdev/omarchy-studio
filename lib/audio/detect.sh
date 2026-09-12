@@ -27,9 +27,10 @@ studio_audio() {
   pw_version=$(studio_package pipewire)
   wp_version=$(studio_package wireplumber)
   jack_version=$(studio_package pipewire-jack)
-  jq --argjson pw "$pipewire" --argjson wp "$wireplumber" --argjson pulse "$pulse" \
+  jq -L "$STUDIO_ROOT/lib/audio" --argjson pw "$pipewire" --argjson wp "$wireplumber" --argjson pulse "$pulse" \
     --argjson pw_version "$pw_version" --argjson wp_version "$wp_version" --argjson jack_version "$jack_version" \
     --argjson reachable "$STUDIO_PW_REACHABLE" '
+    include "defaults";
     def positive: (try tonumber catch null) | if type == "number" and . > 0 and floor == . then . else null end;
     . as $dump | ([$dump[] | select(.type == "PipeWire:Interface:Metadata" and .props["metadata.name"] == "settings")
       | .metadata[]? | select(.subject == 0) | {key:.key,value:.value}] | from_entries) as $settings
@@ -39,6 +40,7 @@ studio_audio() {
        clock_settings:{source:"pw-dump settings metadata",rate_hz:($settings["clock.rate"]|positive),
          quantum_frames:($settings["clock.quantum"]|positive),forced_rate_hz:($settings["clock.force-rate"]|positive),
          forced_quantum_frames:($settings["clock.force-quantum"]|positive)},
+       defaults:default_devices($dump; $reachable),
        graph:{rate_hz:null,quantum_frames:null,source:"unavailable"},
        latency:{measured_round_trip_ms:null},xruns:{count:null,status:"unavailable"}}' <<<"$STUDIO_PW_DUMP"
 }
