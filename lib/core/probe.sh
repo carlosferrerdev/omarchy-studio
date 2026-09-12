@@ -41,7 +41,7 @@ studio_service() {
       ($output | split("\n") | map(select(test("^[A-Za-z]+=")) | capture("^(?<key>[^=]+)=(?<value>.*)$")) | from_entries) as $p
       | {state: (if (["active","inactive","failed","activating","deactivating","reloading"] | index($p.ActiveState)) != null then $p.ActiveState else "unknown" end),
          load_state: ($p.LoadState // "unknown"),
-         main_pid: (try ($p.MainPID | tonumber | select(. > 0 and floor == .)) catch null)}
+         main_pid: ((try ($p.MainPID | tonumber | select(. > 0 and floor == .)) catch null) // null)}
       | .main_pid //= null'
   else
     printf '{"state":"unknown","load_state":"unknown","main_pid":null}\n'
