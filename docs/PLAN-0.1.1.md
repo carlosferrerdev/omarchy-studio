@@ -15,6 +15,12 @@
 - All lint, schema and fixture checks pass; the installed plugin is updated through Omarchy and visually reviewed on the current theme.
 - No audio settings, streams or routes are changed by the feature.
 
+## Validation record
+
+The first increment is implemented in 0.1.1. Fixture suites cover selected defaults and operational aggregation alongside the existing CLI tests. Bash syntax, ShellCheck, shfmt, JSON Schema 2 validation, UI model tests and isolated Quickshell execution pass. The installed plugin was updated through Omarchy and its default-device panel and Doctor action were reviewed on the current desktop theme. No playback/capture stream or audio setting was changed.
+
+During the schema transition, the running shell retained old QML components after a plugin rescan. An explicit `omarchy restart shell` loaded the updated reader and panel. This is an observed deployment limitation, not a reason to add automatic shell restarts to diagnostics. Full theme/orientation coverage and physical recording validation are still pending.
+
 ## Following increments
 
 Active driver sampling comes next: research and test a bounded sampler of driver rate/quantum, preserving multiple independent drivers and idle behavior. Never label `pw-top` ERR as a pure hardware XRUN counter; its documented semantics include errors. Keep round-trip latency unmeasured without an explicit measurement method.

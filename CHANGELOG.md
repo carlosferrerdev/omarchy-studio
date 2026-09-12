@@ -4,6 +4,7 @@
 
 - Resolve selected input and output from PipeWire default metadata without exposing internal node names.
 - Separate operational findings, optional capabilities and unverified/unimplemented performance measurements.
+- Show default input/output first in the panel and keep Refresh/Doctor actions near the summary.
 - Explain check impact and next steps; suspended selected devices are normal idle observations.
 - **JSON API change:** schema 2 changes aggregate status semantics. CLI and plugin must be updated together; the Omarchy manifest schema stays at 1.
 
