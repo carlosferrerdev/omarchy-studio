@@ -1,0 +1,124 @@
+#!/bin/bash
+set -euo pipefail
+STUDIO_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+# shellcheck source=../lib/core/report.sh
+source "$STUDIO_ROOT/lib/core/report.sh"
+fixtures=$STUDIO_ROOT/tests/fixtures
+scratch=$(mktemp -d)
+trap 'rm -rf -- "$scratch"' EXIT
+count=0
+assert_json() {
+  if ! jq -e "$2" <<<"$1" >/dev/null; then
+    printf 'not ok - %s\n' "$3" >&2
+    exit 1
+  fi
+  count=$((count + 1))
+  printf 'ok %s - %s\n' "$count" "$3"
+}
+
+# Replace the probe boundary, not parser logic. No host audio hardware is used.
+scenario=running
+studio_has() { [[ $scenario != "commands_missing" ]]; }
+studio_run() {
+  [[ $scenario != "commands_missing" ]] || return 127
+  case "$1" in
+    pw-dump)
+      case "$scenario" in
+        missing) return 127 ;;
+        malformed) printf 'not JSON\n' ;;
+        wrong_shape) printf '[{"id":0,"type":"PipeWire:Interface:Core","info":[]}]\n' ;;
+        empty) printf '[{"id":0,"type":"PipeWire:Interface:Core"}]\n' ;;
+        *) cat "$fixtures/pipewire.json" ;;
+      esac
+      ;;
+    systemctl)
+      if [[ $scenario == "no_session" ]]; then return 1; fi
+      if [[ $* == *"is-system-running"* ]]; then
+        printf 'running\n'
+        return
+      fi
+      if [[ $scenario == "inactive" && $* == *wireplumber* ]] || [[ $scenario == "missing" ]]; then
+        printf 'LoadState=loaded\nActiveState=inactive\nMainPID=0\n'
+      elif [[ $scenario == "garbage_service" ]]; then
+        printf 'unexpected\n'
+      else
+        printf 'LoadState=loaded\nActiveState=active\nMainPID=100\n'
+      fi
+      ;;
+    pacman)
+      [[ $scenario != "missing" && $3 != "omarchy-dev" ]] || return 1
+      printf '%s 1.0\n' "$3"
+      ;;
+    aconnect)
+      case "$scenario" in
+        empty | missing) return 0 ;;
+        malformed) printf 'unexpected output\n' ;;
+        *) if [[ $2 == "-i" ]]; then cat "$fixtures/midi-source.txt"; else cat "$fixtures/midi-destination.txt"; fi ;;
+      esac
+      ;;
+    ps) if [[ $scenario == "rt" ]]; then printf ' TS -\n FF 88\n'; else printf ' TS -\n'; fi ;;
+    uname) printf 'test-kernel\n' ;;
+    hyprctl) printf '{"version":"test"}\n' ;;
+    *) return 127 ;;
+  esac
+}
+
+studio_audio_snapshot
+assert_json "$(studio_audio)" '.pipewire.reachable and .wireplumber.state == "active" and .graph.rate_hz == null and .clock_settings.rate_hz == 48000 and .clock_settings.forced_quantum_frames == null' 'running PipeWire separates settings from measurements'
+hardware=$(studio_hardware "$fixtures/alsa-cards.txt")
+assert_json "$hardware" '.devices|length == 2' 'multiple interfaces merge by ALSA card without counting a USB camera'
+assert_json "$hardware" 'all(.devices[]; .name != "" and .transport == "usb")' 'hardware names survive sanitization'
+[[ $hardware != *PRIVATE-SERIAL-SENTINEL* ]] || exit 1
+assert_json "$(studio_midi)" '[.ports[]|select(.kind == "hardware")]|length == 3' 'multiple controllers and ports are preserved'
+assert_json "$(studio_midi)" '([.ports[]|select(.client == 24)][0].directions|length) == 2 and (.pipewire_ports|length) == 1 and .pipewire_ports[0].direction == "source"' 'MIDI directions merge and audio ports are excluded'
+assert_json "$(studio_realtime 100)" '.pipewire_realtime_thread_observed == false and .performance_verified == false' 'ordinary threads never prove realtime performance'
+scenario=rt
+assert_json "$(studio_realtime 100)" '.pipewire_realtime_thread_observed == true and .performance_verified == false' 'FIFO thread is an observation only'
+scenario=inactive
+assert_json "$(studio_audio)" '.wireplumber.state == "inactive" and .wireplumber.main_pid == null' 'inactive WirePlumber retains an explicit null PID'
+scenario=no_session
+assert_json "$(studio_audio)" '.pipewire.state == "unknown"' 'unavailable user bus is unknown, not inactive'
+scenario=garbage_service
+assert_json "$(studio_service pipewire.service)" '.state == "unknown" and .main_pid == null' 'unexpected service output remains unknown'
+scenario=missing
+studio_audio_snapshot
+assert_json "$(studio_audio)" '.pipewire.reachable == false and .pipewire.package_version == null and .clock_settings.rate_hz == null' 'missing PipeWire yields a partial report'
+assert_json "$(studio_hardware "$fixtures/alsa-cards.txt")" '.alsa.status == "ok" and (.devices|length) == 2 and all(.devices[]; .source == "proc_asound")' 'ALSA inventory works without PipeWire'
+scenario=empty
+studio_audio_snapshot
+printf '%s\n' '--- no soundcards ---' >"$scratch/cards"
+assert_json "$(studio_hardware "$scratch/cards")" '.alsa.status == "ok" and .devices == []' 'no audio hardware is a valid empty inventory'
+assert_json "$(studio_midi)" '.status == "ok" and .ports == []' 'no MIDI devices is a valid empty inventory'
+scenario=malformed
+studio_audio_snapshot
+assert_json "$(studio_audio)" '.pipewire.reachable == false' 'malformed PipeWire output does not crash'
+assert_json "$(studio_midi)" '.status == "unknown"' 'unexpected MIDI output never claims an empty inventory'
+scenario=wrong_shape
+studio_audio_snapshot
+assert_json "$(studio_audio)" '.pipewire.reachable == false' 'structurally invalid PipeWire JSON remains unknown'
+scenario=commands_missing
+studio_audio_snapshot
+assert_json "$(studio_audio)" '.pipewire.state == "unknown" and .jack.compatibility == "unknown"' 'missing optional commands produce unknown observations'
+assert_json "$(studio_hardware "$scratch/nonexistent")" '.alsa.status == "unknown" and .pipewire_status == "unknown"' 'missing sources differ from empty hardware'
+assert_json "$(studio_midi)" '.status == "unknown" and .ports == []' 'missing MIDI tools do not crash'
+
+scenario=running
+studio_audio_snapshot
+# Exceed Linux MAX_ARG_STRLEN: parsers must consume raw snapshots on stdin.
+STUDIO_PW_DUMP=$(jq '. + [{id:99,type:"Other",padding:("x" * 140000)}]' <<<"$STUDIO_PW_DUMP")
+assert_json "$(studio_audio)" '.clock_settings.quantum_frames == 128' 'large PipeWire snapshots are streamed'
+
+"$STUDIO_ROOT/bin/omarchy-studio" --help >/dev/null
+assert_json "$("$STUDIO_ROOT/bin/omarchy-studio" version --json)" '.schema_version == 1 and .command == "version"' 'version JSON works'
+if "$STUDIO_ROOT/bin/omarchy-studio" invalid >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 2 ]]; fi
+if "$STUDIO_ROOT/bin/omarchy-studio" status --invalid >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 2 ]]; fi
+# Exercise the real dispatcher with no optional commands or user bus on PATH.
+mkdir "$scratch/bin"
+for tool in jq timeout readlink dirname; do ln -s "$(command -v "$tool")" "$scratch/bin/$tool"; done
+result=$(PATH="$scratch/bin" OMARCHY_PATH="$scratch/absent" "$STUDIO_ROOT/bin/omarchy-studio" status --json)
+assert_json "$result" '.status == "unsupported" and .audio.pipewire.reachable == false and .midi.status == "unknown"' 'full CLI survives missing optional tools'
+if PATH="$scratch/bin" OMARCHY_PATH="$scratch/absent" "$STUDIO_ROOT/bin/omarchy-studio" doctor --json >"$scratch/report"; then exit 1; else [[ $? == 4 ]]; fi
+assert_json "$(<"$scratch/report")" '.command == "doctor" and .schema_version == 1' 'doctor unsupported exit still returns JSON'
+rm "$scratch/bin/jq"
+if PATH="$scratch/bin" "$STUDIO_ROOT/bin/omarchy-studio" status --json >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 3 && ! -s "$scratch/out" ]]; fi
+printf 'All %s JSON assertions and CLI argument/exit checks passed.\n' "$count"

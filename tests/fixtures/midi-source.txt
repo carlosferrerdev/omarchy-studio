@@ -1,0 +1,10 @@
+client 0: 'System' [type=kernel]
+    0 'Timer           '
+    1 'Announce        '
+client 14: 'Midi Through' [type=kernel]
+    0 'Midi Through Port-0'
+client 24: 'Controller A' [type=kernel,card=2]
+    0 'Keyboard        '
+client 28: 'Player\"s Controller' [type=kernel,card=3]
+    0 'Notes           '
+    1 'Control         '

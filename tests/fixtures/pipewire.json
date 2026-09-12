@@ -1,0 +1,13 @@
+[
+  {"id":0,"type":"PipeWire:Interface:Core","info":{"props":{}}},
+  {"id":1,"type":"PipeWire:Interface:Metadata","props":{"metadata.name":"settings"},"metadata":[
+    {"subject":0,"key":"clock.rate","value":48000},
+    {"subject":0,"key":"clock.quantum","value":128},
+    {"subject":0,"key":"clock.force-quantum","value":0}
+  ]},
+  {"id":10,"type":"PipeWire:Interface:Device","info":{"props":{"media.class":"Audio/Device","device.description":"Studio Interface A","device.vendor.name":"Example","device.product.name":"Interface A","device.bus":"usb","api.alsa.card":0,"device.serial":"PRIVATE-SERIAL-SENTINEL"}}},
+  {"id":11,"type":"PipeWire:Interface:Device","info":{"props":{"media.class":"Audio/Device","device.description":"Studio Interface B","device.bus":"usb","api.alsa.card":"2"}}},
+  {"id":12,"type":"PipeWire:Interface:Device","info":{"props":{"media.class":"Video/Device","device.description":"USB Camera","device.bus":"usb"}}},
+  {"id":20,"type":"PipeWire:Interface:Port","info":{"props":{"format.dsp":"8 bit raw midi","port.name":"MIDI source","port.direction":"out"}}},
+  {"id":21,"type":"PipeWire:Interface:Port","info":{"props":{"format.dsp":"32 bit float mono audio","port.name":"Audio","port.direction":"in"}}}
+]

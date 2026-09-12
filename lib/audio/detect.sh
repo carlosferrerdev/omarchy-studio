@@ -5,7 +5,12 @@ studio_audio_snapshot() {
   STUDIO_PW_REACHABLE=false
   local output
   if output=$(studio_run pw-dump) && jq -e '
-    type == "array" and all(.[]; type == "object" and (.type | type == "string"))
+    type == "array" and all(.[]; type == "object" and (.type | type == "string")
+      and (.id | type == "number" and . >= 0 and floor == .)
+      and (.info == null or (.info | type == "object"))
+      and (.info.props == null or (.info.props | type == "object"))
+      and (.props == null or (.props | type == "object"))
+      and (.metadata == null or (.metadata | type == "array" and all(.[]; type == "object" and (.key | type == "string") and (.subject | type == "number")))))
     and any(.[]; .type == "PipeWire:Interface:Core")' <<<"$output" >/dev/null 2>&1; then
     STUDIO_PW_DUMP=$output
     STUDIO_PW_REACHABLE=true

@@ -1,0 +1,4 @@
+ 0 [StudioA        ]: USB-Audio - Studio Interface A
+                      Example USB address and serial omitted
+ 2 [StudioB        ]: USB-Audio - Studio Interface B
+                      Example USB address and serial omitted

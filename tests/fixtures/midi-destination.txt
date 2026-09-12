@@ -1,0 +1,4 @@
+client 14: 'Midi Through' [type=kernel]
+    0 'Midi Through Port-0'
+client 24: 'Controller A' [type=kernel,card=2]
+    0 'Keyboard        '
