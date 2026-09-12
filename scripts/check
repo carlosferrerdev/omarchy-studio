@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euo pipefail
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$root"
+for dependency in shellcheck shfmt jq python3; do
+  command -v "$dependency" >/dev/null || {
+    printf 'Missing development dependency: %s\n' "$dependency" >&2
+    exit 3
+  }
+done
+mapfile -t shell_files < <(printf '%s\n' bin/omarchy-studio lib/*/*.sh scripts/check tests/run)
+for file in "${shell_files[@]}"; do bash -n "$file"; done
+shellcheck -x "${shell_files[@]}"
+shfmt -d -i 2 -ci "${shell_files[@]}"
+./tests/run
+python3 tests/validate-schema.py
+if [[ -f tests/plugin-model.cjs ]]; then node tests/plugin-model.cjs; fi
+if [[ -f manifest.json ]]; then
+  jq -e '.schemaVersion == 1 and (.id | test("^[A-Za-z0-9][A-Za-z0-9._-]*$") and (startswith("omarchy.") | not) and (contains("..") | not)) and .kinds == ["bar-widget"] and .entryPoints.barWidget == "plugin/BarWidget.qml"' manifest.json >/dev/null
+  [[ -f plugin/BarWidget.qml ]]
+  if command -v omarchy >/dev/null; then omarchy plugin validate "$root"; fi
+fi
+git diff --check
+printf 'All foundation checks passed.\n'

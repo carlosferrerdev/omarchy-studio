@@ -1,0 +1,19 @@
+name: Check
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    timeout-minutes: 10
+    steps:
+      - name: Install isolated CI dependencies
+        run: pacman -Syu --noconfirm --needed git bash coreutils jq shellcheck shfmt nodejs python-jsonschema
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Lint, test and validate JSON
+        run: ./scripts/check
