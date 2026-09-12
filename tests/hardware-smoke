@@ -1,0 +1,92 @@
+#!/bin/bash
+# Opt-in observational test. The user controls all hardware and audio workloads.
+set -euo pipefail
+usage() {
+  cat <<'HELP'
+Usage: tests/hardware-smoke --live [options]
+
+Options:
+  --expect-graph any|active|idle  Expected audio driver sample (default: any)
+  --require-usb-audio            Require an enumerated USB audio device
+  --require-midi-source          Require an enumerated hardware MIDI source
+  -h, --help                     Show help without inspecting the session
+
+Run during your own workload. This test never starts playback, recording or MIDI
+traffic, changes routing, or stores the diagnostic report. A pass only confirms
+the requested observations, not audible playback or recording reliability.
+
+Exit codes: 0 observations match, 1 failure, 2 arguments, 3 missing dependency,
+4 inconclusive (unsupported session, unavailable evidence or unmet conditions).
+HELP
+}
+live=false
+expected_graph=any
+require_usb=false
+require_midi=false
+while (($#)); do
+  case "$1" in
+    --live) live=true ;;
+    --require-usb-audio) require_usb=true ;;
+    --require-midi-source) require_midi=true ;;
+    --expect-graph)
+      if (($# < 2)) || [[ ! $2 =~ ^(any|active|idle)$ ]]; then
+        printf 'Expected --expect-graph any, active or idle.\n' >&2
+        exit 2
+      fi
+      expected_graph=$2
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option. Run tests/hardware-smoke --help.\n' >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+if [[ $live != true ]]; then
+  printf 'Live session inspection requires --live. Run tests/hardware-smoke --help.\n' >&2
+  exit 2
+fi
+for dependency in dirname jq timeout; do
+  if ! command -v "$dependency" >/dev/null; then
+    printf 'Missing dependency: %s\n' "$dependency" >&2
+    exit 3
+  fi
+done
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+code=0
+report=$(timeout --signal=TERM --kill-after=1s 30s "$root/bin/omarchy-studio" doctor --json 2>/dev/null) || code=$?
+case "$code" in
+  0 | 4 | 5) ;;
+  3)
+    printf 'Missing CLI dependency. Check the installation requirements.\n' >&2
+    exit 3
+    ;;
+  124 | 137)
+    printf 'INCONCLUSIVE: diagnostic collection exceeded its deadline.\n'
+    exit 4
+    ;;
+  *)
+    printf 'FAIL: the diagnostic command did not complete. Run the checkout CLI doctor.\n' >&2
+    exit 1
+    ;;
+esac
+if ! result=$(jq -se --arg expected_graph "$expected_graph" --argjson require_usb "$require_usb" \
+  --argjson require_midi "$require_midi" --argjson exit_code "$code" \
+  -f "$root/tests/session-checks.jq" <<<"$report" 2>/dev/null); then
+  printf 'FAIL: unsupported or malformed diagnostic report. Update the checkout and run its checks.\n' >&2
+  exit 1
+fi
+jq -r '"Omarchy Studio session observation", "",
+  (.checks[] | "[\(.result | ascii_upcase)] \(.message)"), "",
+  "Result: \(.result | ascii_upcase)",
+  "No streams, routes or settings were changed. Audio quality and MIDI event delivery were not tested."' <<<"$result"
+case "$(jq -r '.result' <<<"$result")" in
+  pass) exit 0 ;;
+  inconclusive) exit 4 ;;
+  *) exit 1 ;;
+esac

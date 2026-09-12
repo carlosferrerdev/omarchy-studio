@@ -2,6 +2,7 @@
 
 ## 0.1.2 — Unreleased
 
+- Add an opt-in live session observation runner and a manual hardware validation guide; CI uses a synthetic CLI only.
 - Sample active audio driver rate/quantum with a bounded, read-only PipeWire profiler query.
 - Preserve multiple independent drivers; distinguish idle audio from unavailable sampling.
 - Show observations in the CLI and shell panel with explicitly theoretical period duration.

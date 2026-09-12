@@ -29,6 +29,13 @@ Validation on 2026-09-12: all foundation checks, 23 sampler assertions, schema v
 
 Then validate a musical workflow with available physical hardware: playback, user-authorized recording, interface reconnection, and MIDI source/destination enumeration. Hardware tests remain opt-in. Do not start recording, install a DAW or disconnect devices automatically. Convert observed failures into redacted synthetic fixtures.
 
+The [manual acceptance guide](HARDWARE_VALIDATION.md) and `tests/hardware-smoke`
+now provide this observation workflow. The runner checks explicit graph, USB audio
+and hardware MIDI-source expectations without creating a workload. Its behavior is
+covered by a synthetic CLI in CI. This infrastructure does not close the physical
+validation gate: playback, MIDI delivery, reconnection and recording still need
+the user's chosen hardware and manual observations.
+
 Only after these observations are reliable should configuration work begin with a reviewable `setup --dry-run` plan and rollback design.
 
 ## Sources

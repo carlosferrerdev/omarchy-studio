@@ -8,7 +8,7 @@ for dependency in shellcheck shfmt jq python3 node; do
     exit 3
   }
 done
-mapfile -t shell_files < <(printf '%s\n' bin/omarchy-studio lib/*/*.sh scripts/check tests/run tests/qml-smoke tests/*.sh)
+mapfile -t shell_files < <(printf '%s\n' bin/omarchy-studio lib/*/*.sh scripts/check tests/run tests/qml-smoke tests/hardware-smoke tests/*.sh)
 for file in "${shell_files[@]}"; do bash -n "$file"; done
 shellcheck -x "${shell_files[@]}"
 shfmt -d -i 2 -ci "${shell_files[@]}"
@@ -16,6 +16,7 @@ shfmt -d -i 2 -ci "${shell_files[@]}"
 ./tests/audio-defaults.sh
 ./tests/audio-graph.sh
 ./tests/doctor-status.sh
+./tests/session-validation.sh
 python3 tests/validate-schema.py
 node tests/plugin-model.cjs
 version=$(./bin/omarchy-studio version --json | jq -r '.version')
