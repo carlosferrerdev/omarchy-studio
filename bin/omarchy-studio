@@ -1,0 +1,61 @@
+#!/bin/bash
+# omarchy:summary=Inspect an Omarchy music workstation without changing configuration
+set -euo pipefail
+export LC_ALL=C
+
+STUDIO_VERSION=0.1.0
+usage() {
+  cat <<'HELP'
+Omarchy Studio — read-only music workstation diagnostics
+
+Usage: omarchy-studio <command> [--json] [--verbose]
+
+Commands:
+  version    Print the application version
+  status     Show a concise system and audio snapshot
+  doctor     Explain observations and diagnostic limitations
+
+Options:
+  --json     Emit a schema-versioned JSON document
+  --verbose  Log probe failures to stderr (status/doctor only)
+  -h, --help Show this help
+
+No configuration changes, recording, package installation or telemetry.
+HELP
+}
+
+command_name=${1:---help}
+if (( $# > 0 )); then shift; fi
+json=false
+verbose=${OMARCHY_STUDIO_DEBUG:-0}
+case "$command_name" in
+  -h | --help) usage; exit 0 ;;
+  version | status | doctor) ;;
+  *) printf 'Unknown command. Run: omarchy-studio --help\n' >&2; exit 2 ;;
+esac
+for arg in "$@"; do
+  case "$arg" in
+    --json) json=true ;;
+    --verbose) verbose=1 ;;
+    -h | --help) usage; exit 0 ;;
+    *) printf 'Invalid argument. Run: omarchy-studio --help\n' >&2; exit 2 ;;
+  esac
+done
+if [[ $command_name == "version" ]]; then
+  if [[ $json == "true" ]]; then
+    printf '{"schema_version":1,"command":"version","version":"%s"}\n' "$STUDIO_VERSION"
+  else
+    printf 'Omarchy Studio %s\n' "$STUDIO_VERSION"
+  fi
+  exit 0
+fi
+for dependency in jq timeout readlink dirname; do
+  if ! command -v "$dependency" >/dev/null 2>&1; then
+    printf 'Required command missing: %s. Install the documented runtime dependencies.\n' "$dependency" >&2
+    exit 3
+  fi
+done
+STUDIO_ROOT=$(dirname -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")")
+# shellcheck source=../lib/core/report.sh
+source "$STUDIO_ROOT/lib/core/report.sh"
+studio_report "$command_name" "$json"
