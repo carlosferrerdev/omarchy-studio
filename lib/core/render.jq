@@ -1,0 +1,25 @@
+def value: if . == null or . == "unknown" then "Unknown" else tostring end;
+def safe: gsub("[\u0000-\u001f\u007f]"; " ");
+"Omarchy Studio" + (if .command == "doctor" then " Doctor" else "" end), "",
+"System",
+"  Omarchy       \(.system.omarchy.version | value)",
+"  Kernel        \(.system.kernel | value)",
+"  Session       \(.system.session | value)",
+"  Compositor    \(.system.compositor | value)", "",
+"Audio",
+"  PipeWire      \(.audio.pipewire.state) (graph \(if .audio.pipewire.reachable then "reachable" else "unknown" end))",
+"  WirePlumber   \(.audio.wireplumber.state)",
+"  JACK          \(.audio.jack.compatibility); runtime unverified", "",
+"Audio devices",
+(if (.hardware.devices|length) == 0 then "  None observed (see doctor for source availability)" else .hardware.devices[] | "  \(.name | safe) [\(.transport | value)]" end), "",
+"Clock settings (not active driver measurements)",
+"  Rate          \(.audio.clock_settings.rate_hz | value) Hz",
+"  Quantum       \(.audio.clock_settings.quantum_frames | value) frames",
+"  Round-trip    Unknown",
+"  XRUN monitor  Unavailable", "",
+"MIDI",
+(if ([.midi.ports[] | select(.kind != "virtual")]|length) == 0 then "  No non-system endpoints observed (\(.midi.status))"
+ else .midi.ports[] | select(.kind != "virtual") | "  \(.client_name | safe): \(.name | safe) [\(.directions | join(", "))]" end), "",
+(if .command == "doctor" then "Checks", (.checks[] | "  [\(.status)] \(.message)", (if .status != "ok" then "    \(.hint)" else empty end)), "" else empty end),
+"Result: \(.status | ascii_upcase)",
+"Diagnostic snapshot only; audio performance is not certified."

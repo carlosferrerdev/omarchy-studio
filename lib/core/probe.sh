@@ -23,7 +23,10 @@ studio_run() {
 
 studio_package() {
   local output
-  if ! studio_has pacman; then printf 'null\n'; return; fi
+  if ! studio_has pacman; then
+    printf 'null\n'
+    return
+  fi
   if output=$(studio_run pacman -Q "$1"); then
     jq -Rn --arg package "$1" --arg output "$output" \
       '$output | split(" ") | if length == 2 and .[0] == $package and (.[1] | test("^[^\\s]+$")) then .[1] else null end'

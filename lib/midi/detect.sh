@@ -22,8 +22,8 @@ studio_midi() {
   for direction in source destination; do
     local flag=-i
     if [[ $direction == "destination" ]]; then flag=-o; fi
-    if output=$(studio_run aconnect "$flag") && { [[ -z $output ]] || [[ $output == client\ * ]]; } \
-      && parsed=$(studio_midi_parse "$direction" <<<"$output" 2>/dev/null); then
+    if output=$(studio_run aconnect "$flag") && { [[ -z $output ]] || [[ $output == client\ * ]]; } &&
+      parsed=$(studio_midi_parse "$direction" <<<"$output" 2>/dev/null); then
       ports=$(jq -n --argjson old "$ports" --argjson new "$parsed" '$old + $new')
     else
       state=unknown

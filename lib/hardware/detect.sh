@@ -13,7 +13,7 @@ studio_hardware() {
     fi
   fi
   if [[ $STUDIO_PW_REACHABLE == "true" ]] && devices=$(jq '
-    def text: if type == "string" then gsub("[\\u0000-\\u001f\\u007f]"; "") else null end;
+    def text: if type == "string" then gsub("[\u0000-\u001f\u007f]"; "") else null end;
     [.[] | select(.type == "PipeWire:Interface:Device") | . as $device | .info.props
      | select(.["media.class"] == "Audio/Device")
      | {name:((.["device.description"]|text) // (.["device.product.name"]|text) // "Unknown audio device"),

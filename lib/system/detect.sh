@@ -5,9 +5,11 @@ studio_system() {
   version=$(studio_package omarchy-dev)
   if [[ $version == "null" ]]; then version=$(studio_package omarchy); fi
   if [[ $version != "null" ]]; then
-    detected=true; source=pacman
+    detected=true
+    source=pacman
   elif [[ -f "$omarchy_path/bin/omarchy" && -f "$omarchy_path/shell/shell.qml" ]]; then
-    detected=true; source=runtime_files
+    detected=true
+    source=runtime_files
   fi
   kernel=$(studio_run uname -r || true)
   architecture=$(studio_run uname -m || true)

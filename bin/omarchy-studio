@@ -6,7 +6,7 @@ export LC_ALL=C
 STUDIO_VERSION=0.1.0
 usage() {
   cat <<'HELP'
-Omarchy Studio — read-only music workstation diagnostics
+Omarchy Studio - read-only music workstation diagnostics
 
 Usage: omarchy-studio <command> [--json] [--verbose]
 
@@ -25,20 +25,32 @@ HELP
 }
 
 command_name=${1:---help}
-if (( $# > 0 )); then shift; fi
+if (($# > 0)); then shift; fi
 json=false
 verbose=${OMARCHY_STUDIO_DEBUG:-0}
 case "$command_name" in
-  -h | --help) usage; exit 0 ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
   version | status | doctor) ;;
-  *) printf 'Unknown command. Run: omarchy-studio --help\n' >&2; exit 2 ;;
+  *)
+    printf 'Unknown command. Run: omarchy-studio --help\n' >&2
+    exit 2
+    ;;
 esac
 for arg in "$@"; do
   case "$arg" in
     --json) json=true ;;
     --verbose) verbose=1 ;;
-    -h | --help) usage; exit 0 ;;
-    *) printf 'Invalid argument. Run: omarchy-studio --help\n' >&2; exit 2 ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Invalid argument. Run: omarchy-studio --help\n' >&2
+      exit 2
+      ;;
   esac
 done
 if [[ $command_name == "version" ]]; then
@@ -49,6 +61,7 @@ if [[ $command_name == "version" ]]; then
   fi
   exit 0
 fi
+if [[ $verbose == "1" ]]; then printf 'debug: collecting a read-only diagnostic snapshot\n' >&2; fi
 for dependency in jq timeout readlink dirname; do
   if ! command -v "$dependency" >/dev/null 2>&1; then
     printf 'Required command missing: %s. Install the documented runtime dependencies.\n' "$dependency" >&2

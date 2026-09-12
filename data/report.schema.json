@@ -1,0 +1,736 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Omarchy Studio report v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "command": {
+      "enum": [
+        "version",
+        "status",
+        "doctor"
+      ]
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "version"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "enum": [
+              "status",
+              "doctor"
+            ]
+          }
+        }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "warning",
+              "error",
+              "unknown",
+              "unsupported"
+            ]
+          },
+          "system": {
+            "type": "object",
+            "properties": {
+              "omarchy": {
+                "type": "object",
+                "properties": {
+                  "detected": {
+                    "type": "boolean"
+                  },
+                  "version": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "detected",
+                  "version",
+                  "source"
+                ]
+              },
+              "kernel": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "architecture": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "session": {
+                "type": "string"
+              },
+              "compositor": {
+                "type": "string"
+              },
+              "user_manager": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "omarchy",
+              "kernel",
+              "architecture",
+              "session",
+              "compositor",
+              "user_manager"
+            ]
+          },
+          "audio": {
+            "type": "object",
+            "properties": {
+              "pipewire": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "active",
+                      "inactive",
+                      "failed",
+                      "activating",
+                      "deactivating",
+                      "reloading",
+                      "unknown"
+                    ]
+                  },
+                  "load_state": {
+                    "type": "string"
+                  },
+                  "main_pid": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "package_version": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reachable": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "state",
+                  "load_state",
+                  "main_pid",
+                  "package_version",
+                  "reachable"
+                ]
+              },
+              "wireplumber": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "active",
+                      "inactive",
+                      "failed",
+                      "activating",
+                      "deactivating",
+                      "reloading",
+                      "unknown"
+                    ]
+                  },
+                  "load_state": {
+                    "type": "string"
+                  },
+                  "main_pid": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "package_version": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "state",
+                  "load_state",
+                  "main_pid",
+                  "package_version"
+                ]
+              },
+              "pulse": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "active",
+                      "inactive",
+                      "failed",
+                      "activating",
+                      "deactivating",
+                      "reloading",
+                      "unknown"
+                    ]
+                  },
+                  "load_state": {
+                    "type": "string"
+                  },
+                  "main_pid": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "state",
+                  "load_state",
+                  "main_pid"
+                ]
+              },
+              "jack": {
+                "type": "object",
+                "properties": {
+                  "package_version": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "compatibility": {
+                    "enum": [
+                      "installed",
+                      "unknown"
+                    ]
+                  },
+                  "runtime_verified": {
+                    "const": false
+                  }
+                },
+                "required": [
+                  "package_version",
+                  "compatibility",
+                  "runtime_verified"
+                ]
+              },
+              "clock_settings": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string"
+                  },
+                  "rate_hz": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "quantum_frames": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "forced_rate_hz": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "forced_quantum_frames": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "source",
+                  "rate_hz",
+                  "quantum_frames",
+                  "forced_rate_hz",
+                  "forced_quantum_frames"
+                ]
+              },
+              "graph": {
+                "type": "object",
+                "properties": {
+                  "rate_hz": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "quantum_frames": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rate_hz",
+                  "quantum_frames",
+                  "source"
+                ]
+              },
+              "latency": {
+                "type": "object",
+                "properties": {
+                  "measured_round_trip_ms": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "measured_round_trip_ms"
+                ]
+              },
+              "xruns": {
+                "type": "object",
+                "properties": {
+                  "count": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "count",
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "pipewire",
+              "wireplumber",
+              "pulse",
+              "jack",
+              "clock_settings",
+              "graph",
+              "latency",
+              "xruns"
+            ]
+          },
+          "hardware": {
+            "type": "object",
+            "properties": {
+              "alsa": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "ok",
+                      "unknown"
+                    ]
+                  },
+                  "cards": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "vendor": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "model": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "transport": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "alsa_card": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 0
+                        },
+                        "pipewire_device": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 0
+                        },
+                        "source": {
+                          "enum": [
+                            "pw-dump",
+                            "proc_asound"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "vendor",
+                        "model",
+                        "transport",
+                        "alsa_card",
+                        "pipewire_device",
+                        "source"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "status",
+                  "cards"
+                ]
+              },
+              "pipewire_status": {
+                "enum": [
+                  "ok",
+                  "unknown"
+                ]
+              },
+              "devices": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "model": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "transport": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "alsa_card": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "pipewire_device": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "source": {
+                      "enum": [
+                        "pw-dump",
+                        "proc_asound"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "vendor",
+                    "model",
+                    "transport",
+                    "alsa_card",
+                    "pipewire_device",
+                    "source"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "alsa",
+              "pipewire_status",
+              "devices"
+            ]
+          },
+          "midi": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "ok",
+                  "unknown"
+                ]
+              },
+              "source": {
+                "type": "string"
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "client": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "port": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "client_name": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "virtual",
+                        "hardware",
+                        "unknown"
+                      ]
+                    },
+                    "directions": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "source",
+                          "destination"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "client",
+                    "port",
+                    "client_name",
+                    "name",
+                    "kind",
+                    "directions"
+                  ]
+                }
+              },
+              "pipewire_status": {
+                "enum": [
+                  "ok",
+                  "unknown"
+                ]
+              },
+              "pipewire_ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "direction": {
+                      "enum": [
+                        "source",
+                        "destination",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "direction"
+                  ]
+                }
+              },
+              "routing_verified": {
+                "const": false
+              }
+            },
+            "required": [
+              "status",
+              "source",
+              "ports",
+              "pipewire_status",
+              "pipewire_ports",
+              "routing_verified"
+            ]
+          },
+          "realtime": {
+            "type": "object",
+            "properties": {
+              "pipewire_realtime_thread_observed": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "source": {
+                "type": "string"
+              },
+              "rtkit": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "enum": [
+                      "active",
+                      "inactive",
+                      "failed",
+                      "activating",
+                      "deactivating",
+                      "reloading",
+                      "unknown"
+                    ]
+                  },
+                  "load_state": {
+                    "type": "string"
+                  },
+                  "main_pid": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "state",
+                  "load_state",
+                  "main_pid"
+                ]
+              },
+              "invoking_shell_limits": {
+                "type": "object",
+                "properties": {
+                  "rtprio": {
+                    "type": "string"
+                  },
+                  "memlock_kib": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rtprio",
+                  "memlock_kib"
+                ]
+              },
+              "performance_verified": {
+                "const": false
+              }
+            },
+            "required": [
+              "pipewire_realtime_thread_observed",
+              "source",
+              "rtkit",
+              "invoking_shell_limits",
+              "performance_verified"
+            ]
+          },
+          "tools": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "ok",
+                    "warning",
+                    "error",
+                    "unknown",
+                    "unsupported"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "hint": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "status",
+                "message",
+                "hint"
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "system",
+          "audio",
+          "hardware",
+          "midi",
+          "realtime",
+          "tools",
+          "checks"
+        ]
+      }
+    }
+  ]
+}
