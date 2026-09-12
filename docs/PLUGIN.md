@@ -10,7 +10,18 @@ The maintainer confirmed the personal GitHub account [carlosferrerdev](https://g
 
 The root `manifest.json` declares schema 1, version `0.1.2`, the bar widget entry point, and placement on the right. It passes the installed Omarchy manifest validator. Run `omarchy plugin validate .` before distribution.
 
-After publication, installation uses `omarchy plugin add <actual-repository-url>`, followed by `omarchy plugin enable io.github.carlosferrerdev.omarchy-studio` after review. The repository URL is not assumed from the plugin ID. Publication is separate from local installation. A committed local checkout can also be installed with `omarchy plugin add /absolute/path/to/checkout --enable`; its installed copy follows that local Git origin. The plugin manager does not install CLI dependencies; document and verify them before enabling the widget.
+The Bash implementation is published on `feat/bash-foundation` in [carlosferrerdev/omarchy-studio](https://github.com/carlosferrerdev/omarchy-studio/tree/feat/bash-foundation). The default `main` branch preserves an earlier Python implementation with a different plugin ID. The inspected Omarchy 4.0.3 installer does not accept a branch/ref option and clones the source's default HEAD, so adding the GitHub URL directly installs that earlier implementation.
+
+Clone this branch into a new local directory and install from the committed checkout:
+
+```bash
+git clone --branch feat/bash-foundation --single-branch https://github.com/carlosferrerdev/omarchy-studio.git
+cd omarchy-studio
+omarchy plugin validate .
+omarchy plugin add "$PWD" --enable
+```
+
+The installed copy follows this local Git origin. Keep the checkout on `feat/bash-foundation`, update it with `git pull --ff-only`, then run `omarchy plugin update io.github.carlosferrerdev.omarchy-studio`. Do not change the installed copy's origin to the GitHub URL while its default branch points at the Python implementation. The plugin manager does not install CLI dependencies; review the requirements before enabling the widget.
 
 ## Validation
 

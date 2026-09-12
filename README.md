@@ -32,7 +32,15 @@ Bash CLI for version, status and doctor; PipeWire/WirePlumber service detection;
 
 Requires Bash 5+, GNU coreutils and jq. Clone the repository and run `./bin/omarchy-studio --help`. No installation or root privileges are needed. Optional probes use systemd, pacman, PipeWire tools, alsa-utils and procps-ng when available. Missing optional tools produce partial reports.
 
-The shell plugin runs the CLI from its own checkout; a global command is optional. Its ID is `io.github.carlosferrerdev.omarchy-studio`, and the root manifest supports the official plugin manager. The repository has not been published yet; see [shell integration and installation](docs/PLUGIN.md). Do not add symlinks inside the repository: Omarchy's plugin validator rejects them.
+This Bash implementation uses the `feat/bash-foundation` branch of [carlosferrerdev/omarchy-studio](https://github.com/carlosferrerdev/omarchy-studio/tree/feat/bash-foundation). The default `main` branch preserves an earlier, separate Python implementation. Clone the intended branch explicitly:
+
+```bash
+git clone --branch feat/bash-foundation --single-branch https://github.com/carlosferrerdev/omarchy-studio.git
+cd omarchy-studio
+./bin/omarchy-studio --help
+```
+
+The shell plugin runs the CLI from its own checkout; a global command is optional. Its ID is `io.github.carlosferrerdev.omarchy-studio`, and the root manifest supports the official plugin manager. See [shell integration and installation](docs/PLUGIN.md) for installing this branch through a local checkout. Do not add symlinks inside the repository: Omarchy's plugin validator rejects them.
 
 ## Usage
 
