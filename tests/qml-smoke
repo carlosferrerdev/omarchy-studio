@@ -1,0 +1,49 @@
+#!/bin/bash
+# Opt-in, invisible Wayland test: never installs/enables a plugin in the desktop shell.
+set -euo pipefail
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+shell_path=${OMARCHY_PATH:-/usr/share/omarchy}/shell
+[[ -d $shell_path/Ui && -d $shell_path/Commons ]] || {
+  printf 'Omarchy shell sources are required.\n' >&2
+  exit 4
+}
+scratch=$(mktemp -d)
+trap 'rm -rf -- "$scratch"' EXIT
+ln -s "$shell_path/Ui" "$scratch/Ui"
+ln -s "$shell_path/Commons" "$scratch/Commons"
+plugin_path=$(node -e 'console.log(JSON.stringify(require("node:url").pathToFileURL(process.argv[1]).href))' "$root/plugin")
+cat >"$scratch/shell.qml" <<QML
+import QtQuick
+import Quickshell
+import $plugin_path as Studio
+ShellRoot {
+  Studio.BarWidget {
+    id: widget
+    moduleName: "test.studio"
+    Component.onCompleted: refresh("status")
+    onReportChanged: if (report) {
+      console.log("STUDIO_QML_OK schema=" + report.schema_version)
+      Qt.quit()
+    }
+    onFailureChanged: if (failure) {
+      console.error("STUDIO_QML_FAILURE " + failure)
+      Qt.quit()
+    }
+  }
+  Timer { interval: 24000; running: true; onTriggered: Qt.quit() }
+}
+QML
+ulimit -c 0
+if ! QT_QPA_PLATFORM=wayland timeout --kill-after=1s 26s quickshell --no-color -p "$scratch/shell.qml" >"$scratch/log" 2>&1; then
+  cat "$scratch/log" >&2
+  exit 1
+fi
+if ! grep -q 'STUDIO_QML_OK schema=1' "$scratch/log"; then
+  cat "$scratch/log" >&2
+  exit 1
+fi
+if grep -Eq 'TypeError|ReferenceError|ERROR:|Unable to assign' "$scratch/log"; then
+  cat "$scratch/log" >&2
+  exit 1
+fi
+printf 'ok - isolated Quickshell widget executes the checkout CLI and consumes schema 1\n'

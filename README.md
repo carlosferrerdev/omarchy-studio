@@ -32,7 +32,7 @@ Bash CLI for version, status and doctor; PipeWire/WirePlumber service detection;
 
 Requires Bash 5+, GNU coreutils and jq. Clone the repository and run `./bin/omarchy-studio --help`. No installation or root privileges are needed. Optional probes use systemd, pacman, PipeWire tools, alsa-utils and procps-ng when available. Missing optional tools produce partial reports.
 
-The shell plugin runs the CLI from its own checkout; a global command is optional. Plugin installation instructions are in [development](docs/DEVELOPMENT.md). Do not add symlinks inside the repository: Omarchy's plugin validator rejects them.
+The QML prototype runs the CLI from its own checkout; a global command is optional. Its root manifest awaits confirmation of the repository owner, so plugin-manager installation is not available yet. See [shell integration status](docs/PLUGIN.md). Do not add symlinks inside the repository: Omarchy's plugin validator rejects them.
 
 ## Usage
 
