@@ -1,0 +1,12 @@
+{
+  "system":{"omarchy":{"detected":true},"user_manager":"running"},
+  "audio":{
+    "pipewire":{"reachable":true,"state":"active"},
+    "wireplumber":{"state":"active"},"pulse":{"state":"active"},
+    "jack":{"package_version":null},
+    "defaults":{"output":{"status":"selected","state":"suspended"},"input":{"status":"not_selected"}}
+  },
+  "hardware":{"devices":[],"alsa":{"status":"ok"},"pipewire_status":"ok"},
+  "midi":{"status":"unknown","ports":[]},
+  "realtime":{"pipewire_realtime_thread_observed":null}
+}

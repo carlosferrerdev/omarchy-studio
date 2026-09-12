@@ -1,29 +1,74 @@
-def check($id; $status; $message; $hint): {id:$id,status:$status,message:$message,hint:$hint};
-. as $r | .checks = [
-  check("system.omarchy"; (if .system.omarchy.detected then "ok" else "unsupported" end);
-    (if .system.omarchy.detected then "Omarchy detected" else "Omarchy could not be detected" end); "Target: current Omarchy. Other environments receive partial reports."),
-  check("system.user_manager"; (if .system.user_manager == "running" then "ok" else "warning" end);
-    ("User session: " + .system.user_manager); "Check: systemctl --user status"),
-  check("audio.pipewire"; (if .audio.pipewire.reachable then "ok" elif .audio.pipewire.state == "inactive" or .audio.pipewire.state == "failed" then "error" else "unknown" end);
+def check($category; $id; $status; $message; $impact; $hint):
+  {category:$category,id:$id,status:$status,
+   evidence:(if $status == "unknown" then "unavailable" else "observed" end),
+   message:$message,impact:$impact,hint:$hint};
+def service_status($state; $inactive):
+  if $state == "active" then "ok" elif $state == "unknown" then "unknown"
+  elif $state == "inactive" or $state == "failed" then $inactive else "warning" end;
+def endpoint_status:
+  if .status == "not_selected" then "warning"
+  elif .status != "selected" then "unknown"
+  elif .state == "error" then "error"
+  elif .state == "creating" then "warning"
+  elif .state == "unknown" then "unknown" else "ok" end;
+. as $report | .checks = [
+  check("health"; "system.omarchy"; (if .system.omarchy.detected then "ok" else "unsupported" end);
+    (if .system.omarchy.detected then "Omarchy detected" else "Omarchy could not be detected" end);
+    "Integration is supported on the current Omarchy release."; "Other environments receive partial reports."),
+  check("health"; "system.user_manager";
+    (if .system.user_manager == "running" then "ok" elif .system.user_manager == "unknown" then "unknown" else "warning" end);
+    ("User session: " + .system.user_manager); "User services may be unavailable or still starting.";
+    "Check: systemctl --user status"),
+  check("health"; "audio.pipewire";
+    (if .audio.pipewire.reachable then "ok" elif .audio.pipewire.state == "inactive" or .audio.pipewire.state == "failed" then "error" else "unknown" end);
     (if .audio.pipewire.reachable then "PipeWire graph is reachable" else "PipeWire graph could not be inspected" end);
-    "Check: systemctl --user status pipewire; pw-dump. Check that PipeWire tools are installed and the user session is available."),
-  check("audio.wireplumber"; (if .audio.wireplumber.state == "active" then "ok" elif .audio.wireplumber.state == "unknown" then "unknown" else "error" end);
-    ("WirePlumber service: " + .audio.wireplumber.state); "Check: systemctl --user status wireplumber"),
-  check("audio.pulse"; (if .audio.pulse.state == "active" then "ok" else "warning" end);
-    ("PipeWire Pulse service: " + .audio.pulse.state); "Check: systemctl --user status pipewire-pulse"),
-  check("audio.jack"; (if .audio.jack.package_version != null then "ok" else "unknown" end);
+    "Applications need a reachable audio server to use PipeWire.";
+    "Check: systemctl --user status pipewire; pw-dump. Verify PipeWire tools and the user session."),
+  check("health"; "audio.wireplumber"; service_status(.audio.wireplumber.state; "error");
+    ("WirePlumber service: " + .audio.wireplumber.state);
+    "Automatic device selection and routing may not work when the session manager is unavailable.";
+    "Check: systemctl --user status wireplumber"),
+  check("health"; "audio.pulse"; service_status(.audio.pulse.state; "warning");
+    ("PipeWire Pulse service: " + .audio.pulse.state);
+    "Applications using PulseAudio compatibility may have no audio.";
+    "Check: systemctl --user status pipewire-pulse"),
+  check("health"; "audio.default_output"; (.audio.defaults.output | endpoint_status);
+    (if .audio.defaults.output.status == "selected" then "Default output selected" elif .audio.defaults.output.status == "not_selected" then "No default output selected" else "Default output could not be resolved" end);
+    "New automatically connected playback streams use this default; existing applications may use another route.";
+    "Check the output selection in the Omarchy audio panel or run wpctl status. A suspended node can be a normal idle device."),
+  check("health"; "audio.default_input";
+    (if .audio.defaults.input.status == "not_selected" then "ok" else (.audio.defaults.input | endpoint_status) end);
+    (if .audio.defaults.input.status == "selected" then "Default input selected" elif .audio.defaults.input.status == "not_selected" then "No default input selected" else "Default input could not be resolved" end);
+    "Recording needs an appropriate input, but playback does not. Selecting an input does not prove capture works.";
+    "Check the input selection in the Omarchy audio panel and your DAW. No microphone test was performed."),
+  check("optional"; "audio.jack"; (if .audio.jack.package_version != null then "ok" else "unknown" end);
     (if .audio.jack.package_version != null then "PipeWire JACK package installed; runtime not tested" else "PipeWire JACK package not confirmed" end);
+    "Only applications using the JACK API need this compatibility layer.";
     "Check: pacman -Q pipewire-jack. No standalone JACK server is required by Studio."),
-  check("hardware.audio"; (if (.hardware.devices|length) > 0 then "ok" elif .hardware.alsa.status == "ok" or .hardware.pipewire_status == "ok" then "warning" else "unknown" end);
-    ((.hardware.devices|length|tostring) + " audio devices observed"); "Check: aplay -l; arecord -l; wpctl status. No professional capabilities are inferred."),
-  check("midi.endpoints"; .midi.status;
+  check("optional"; "hardware.audio";
+    (if (.hardware.devices|length) > 0 or .hardware.alsa.status == "ok" or .hardware.pipewire_status == "ok" then "ok" else "unknown" end);
+    ((.hardware.devices|length|tostring) + " audio devices observed");
+    "Device inventory does not establish professional capabilities or actual application routing.";
+    "Check: aplay -l; arecord -l; wpctl status."),
+  check("optional"; "midi.endpoints"; .midi.status;
     (if .midi.status == "ok" then (([.midi.ports[]|select(.kind != "virtual")]|length|tostring) + " non-system ALSA MIDI endpoints observed") else "MIDI enumeration incomplete" end);
+    "MIDI is optional for audio playback and recording.";
     "Check: aconnect -i; aconnect -o. Empty inventory is normal without a controller."),
-  check("performance.realtime"; (if .realtime.pipewire_realtime_thread_observed == true then "ok" else "unknown" end);
-    (if .realtime.pipewire_realtime_thread_observed == true then "A PipeWire FIFO/RR thread was observed" else "PipeWire realtime scheduling could not be verified" end);
-    "An idle graph may have no realtime thread. Inspect during a representative audio workload; RTKit and shell limits alone do not prove scheduling."),
-  check("audio.measurement"; "unknown"; "Active driver rate, quantum, XRUNs and round-trip latency are not measured";
-    "Clock settings are configuration only. Inspect active drivers with pw-top; real round-trip latency requires an appropriate loopback measurement.")
-] | .status = (if any(.checks[]; .status == "error") then "error"
-  elif any(.checks[]; .status == "unsupported") then "unsupported"
-  elif any(.checks[]; .status == "warning" or .status == "unknown") then "warning" else "ok" end)
+  (check("performance"; "performance.realtime";
+    (if .realtime.pipewire_realtime_thread_observed == true then "ok" else "unknown" end);
+    (if .realtime.pipewire_realtime_thread_observed == true then "A PipeWire FIFO/RR thread was observed" else "PipeWire realtime scheduling is not verified" end);
+    "This snapshot does not establish low-latency reliability.";
+    "Inspect during a representative audio workload. An idle graph may have no realtime thread; RTKit and shell limits alone are insufficient.")
+    | .evidence = (if $report.realtime.pipewire_realtime_thread_observed != null then "observed" else "unavailable" end)),
+  (check("performance"; "audio.measurement"; "unknown";
+    "Active driver rate, quantum, XRUNs and round-trip latency: not measured";
+    "These collectors are not implemented yet; this is not a detected configuration problem.";
+    "Clock settings are configuration only. Use pw-top for driver observations; round-trip latency needs an appropriate loopback measurement.")
+    | .evidence = "not_implemented")
+]
+| .status_scope = "operational"
+| [.checks[] | select(.category == "health")] as $health
+| .status = (if any($health[]; .status == "error") then "error"
+  elif any($health[]; .status == "unsupported") then "unsupported"
+  elif any($health[]; .status == "warning") then "warning"
+  elif any($health[]; .status == "unknown") then "unknown" else "ok" end)

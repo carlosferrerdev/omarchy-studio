@@ -27,7 +27,7 @@ studio_report() {
   report=$(jq -n --arg command "$1" --arg version "$STUDIO_VERSION" --argjson system "$system" \
     --argjson audio "$audio" --argjson hardware "$hardware" --argjson midi "$midi" \
     --argjson realtime "$realtime" --argjson tools "$tools" '
-    {schema_version:1,command:$command,version:$version,status:"unknown",system:$system,audio:$audio,
+    {schema_version:2,command:$command,version:$version,status:"unknown",system:$system,audio:$audio,
      hardware:$hardware,midi:$midi,realtime:$realtime,tools:$tools,checks:[]}' |
     jq -f "$STUDIO_ROOT/lib/core/checks.jq")
   if [[ $2 == "true" ]]; then

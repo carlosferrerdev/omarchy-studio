@@ -2,13 +2,13 @@
 
 The UI prototype uses the installed Omarchy `qs.Ui.Panel`, `WidgetButton`, `KeyboardPanel` and shared theme tokens. Like the first-party audio plugin, it is a bar widget with a popup, so it needs only the `bar-widget` kind. `plugin/BarWidget.qml` is the intended entry point; `plugin/Panel.qml` contains presentation and `plugin/Model.js` handles the JSON view model.
 
-The widget executes `../bin/omarchy-studio status --json` relative to its own source URL, using an argument array. It refreshes on opening or explicit user action, runs doctor through the same JSON API, reports failures, rejects unsupported schema versions and bounds a request with a watchdog. There is no service, polling loop, terminal-text parser, global command dependency or privileged action.
+The widget consumes CLI JSON schema 2; the manifest uses Omarchy schema 1. The widget executes `../bin/omarchy-studio status --json` relative to its own source URL, using an argument array. It refreshes on opening or explicit user action, runs doctor through the same JSON API, reports failures, rejects unsupported schema versions and bounds a request with a watchdog. There is no service, polling loop, terminal-text parser, global command dependency or privileged action.
 
 ## Identity and installation
 
 The maintainer confirmed the personal GitHub account [carlosferrerdev](https://github.com/carlosferrerdev), and the public GitHub API verified that login. The plugin ID is **`io.github.carlosferrerdev.omarchy-studio`**, outside the reserved `omarchy.*` namespace.
 
-The root `manifest.json` declares schema 1, version `0.1.0`, the bar widget entry point, and placement on the right. It passes the installed Omarchy manifest validator. Run `omarchy plugin validate .` before distribution.
+The root `manifest.json` declares schema 1, version `0.1.1`, the bar widget entry point, and placement on the right. It passes the installed Omarchy manifest validator. Run `omarchy plugin validate .` before distribution.
 
 After publication, installation uses `omarchy plugin add <actual-repository-url>`, followed by `omarchy plugin enable io.github.carlosferrerdev.omarchy-studio` after review. The repository URL is not assumed from the plugin ID. This checkout has not been published, installed or enabled in the user's shell. The plugin manager does not install CLI dependencies; document and verify them before enabling the widget.
 

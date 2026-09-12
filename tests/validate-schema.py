@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory(prefix="studio-schema-") as directory:
         assert process.returncode == (4 if command == "doctor" else 0)
         document = json.loads(process.stdout)
         validator.validate(document)
-        document["schema_version"] = 2
+        document["schema_version"] = 99
         try:
             validator.validate(document)
         except ValidationError:

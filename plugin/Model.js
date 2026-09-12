@@ -1,6 +1,6 @@
 function readReport(text) {
   var report = JSON.parse(text)
-  if (!report || report.schema_version !== 1 ||
+  if (!report || report.schema_version !== 2 ||
       ["status", "doctor"].indexOf(report.command) < 0 ||
       ["ok", "warning", "error", "unknown", "unsupported"].indexOf(report.status) < 0 ||
       !report.audio || !report.audio.pipewire || !report.audio.wireplumber ||

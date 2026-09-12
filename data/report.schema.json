@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Omarchy Studio report v1",
+  "title": "Omarchy Studio report v2",
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "command": {
       "enum": [
@@ -344,6 +344,29 @@
                   "count",
                   "status"
                 ]
+              },
+              "defaults": {
+                "type": "object",
+                "required": [
+                  "source",
+                  "scope",
+                  "input",
+                  "output"
+                ],
+                "properties": {
+                  "source": {
+                    "const": "pw-dump default metadata"
+                  },
+                  "scope": {
+                    "const": "session_defaults"
+                  },
+                  "input": {
+                    "$ref": "#/$defs/defaultEndpoint"
+                  },
+                  "output": {
+                    "$ref": "#/$defs/defaultEndpoint"
+                  }
+                }
               }
             },
             "required": [
@@ -354,7 +377,8 @@
               "clock_settings",
               "graph",
               "latency",
-              "xruns"
+              "xruns",
+              "defaults"
             ]
           },
           "hardware": {
@@ -709,15 +733,38 @@
                 },
                 "hint": {
                   "type": "string"
+                },
+                "category": {
+                  "enum": [
+                    "health",
+                    "optional",
+                    "performance"
+                  ]
+                },
+                "evidence": {
+                  "enum": [
+                    "observed",
+                    "unavailable",
+                    "not_implemented"
+                  ]
+                },
+                "impact": {
+                  "type": "string"
                 }
               },
               "required": [
                 "id",
                 "status",
                 "message",
-                "hint"
+                "hint",
+                "category",
+                "evidence",
+                "impact"
               ]
             }
+          },
+          "status_scope": {
+            "const": "operational"
           }
         },
         "required": [
@@ -728,9 +775,85 @@
           "midi",
           "realtime",
           "tools",
-          "checks"
+          "checks",
+          "status_scope"
         ]
       }
     }
-  ]
+  ],
+  "$defs": {
+    "defaultEndpoint": {
+      "type": "object",
+      "required": [
+        "status",
+        "reason",
+        "node_id",
+        "name",
+        "state",
+        "kind",
+        "device_id"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "selected",
+            "not_selected",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "resolved",
+            "probe_unavailable",
+            "metadata_unavailable",
+            "no_default",
+            "ambiguous_default",
+            "malformed_default",
+            "node_not_found",
+            "ambiguous_node"
+          ]
+        },
+        "node_id": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "enum": [
+            "running",
+            "idle",
+            "suspended",
+            "creating",
+            "error",
+            "unknown",
+            null
+          ]
+        },
+        "kind": {
+          "enum": [
+            "device",
+            "virtual",
+            "monitor",
+            "unknown",
+            null
+          ]
+        },
+        "device_id": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    }
+  }
 }

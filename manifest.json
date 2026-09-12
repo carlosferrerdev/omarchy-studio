@@ -2,10 +2,12 @@
   "schemaVersion": 1,
   "id": "io.github.carlosferrerdev.omarchy-studio",
   "name": "Omarchy Studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Carlos Ferrer",
   "description": "Read-only music workstation diagnostics for Omarchy",
-  "kinds": ["bar-widget"],
+  "kinds": [
+    "bar-widget"
+  ],
   "entryPoints": {
     "barWidget": "plugin/BarWidget.qml"
   },

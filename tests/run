@@ -114,8 +114,13 @@ studio_audio_snapshot
 STUDIO_PW_DUMP=$(jq '. + [{id:99,type:"Other",padding:("x" * 140000)}]' <<<"$STUDIO_PW_DUMP")
 assert_json "$(studio_audio)" '.clock_settings.quantum_frames == 128' 'large PipeWire snapshots are streamed'
 
+scenario=inactive
+if report=$(STUDIO_VERSION=0.1.1 studio_report doctor true); then exit 1; else [[ $? == 5 ]]; fi
+assert_json "$report" '.schema_version == 2 and .status == "error"' 'doctor returns code 5 and schema 2 for an observed service failure'
+assert_json "$(STUDIO_VERSION=0.1.1 studio_report status true)" '.status == "error"' 'status completes successfully while reporting an operational failure'
+
 "$STUDIO_ROOT/bin/omarchy-studio" --help >/dev/null
-assert_json "$("$STUDIO_ROOT/bin/omarchy-studio" version --json)" '.schema_version == 1 and .command == "version"' 'version JSON works'
+assert_json "$("$STUDIO_ROOT/bin/omarchy-studio" version --json)" '.schema_version == 2 and .command == "version"' 'version JSON works'
 if "$STUDIO_ROOT/bin/omarchy-studio" invalid >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 2 ]]; fi
 if "$STUDIO_ROOT/bin/omarchy-studio" status --invalid >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 2 ]]; fi
 # Exercise the real dispatcher with no optional commands or user bus on PATH.
@@ -124,7 +129,7 @@ for tool in jq timeout readlink dirname; do ln -s "$(command -v "$tool")" "$scra
 result=$(PATH="$scratch/bin" OMARCHY_PATH="$scratch/absent" "$STUDIO_ROOT/bin/omarchy-studio" status --json)
 assert_json "$result" '.status == "unsupported" and .audio.pipewire.reachable == false and .midi.status == "unknown"' 'full CLI survives missing optional tools'
 if PATH="$scratch/bin" OMARCHY_PATH="$scratch/absent" "$STUDIO_ROOT/bin/omarchy-studio" doctor --json >"$scratch/report"; then exit 1; else [[ $? == 4 ]]; fi
-assert_json "$(<"$scratch/report")" '.command == "doctor" and .schema_version == 1' 'doctor unsupported exit still returns JSON'
+assert_json "$(<"$scratch/report")" '.command == "doctor" and .schema_version == 2' 'doctor unsupported exit still returns JSON'
 rm "$scratch/bin/jq"
 if PATH="$scratch/bin" "$STUDIO_ROOT/bin/omarchy-studio" status --json >"$scratch/out" 2>"$scratch/err"; then exit 1; else [[ $? == 3 && ! -s "$scratch/out" ]]; fi
 printf 'All %s JSON assertions and CLI argument/exit checks passed.\n' "$count"

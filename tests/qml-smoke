@@ -39,7 +39,7 @@ if ! QT_QPA_PLATFORM=wayland timeout --kill-after=1s 26s quickshell --no-color -
   cat "$scratch/log" >&2
   exit 1
 fi
-if ! grep -q 'STUDIO_QML_OK schema=1' "$scratch/log"; then
+if ! grep -q 'STUDIO_QML_OK schema=2' "$scratch/log"; then
   cat "$scratch/log" >&2
   exit 1
 fi
@@ -47,4 +47,4 @@ if grep -Eq 'TypeError|ReferenceError|ERROR:|Unable to assign' "$scratch/log"; t
   cat "$scratch/log" >&2
   exit 1
 fi
-printf 'ok - isolated Quickshell widget executes the checkout CLI and consumes schema 1\n'
+printf 'ok - isolated Quickshell widget executes the checkout CLI and consumes schema 2\n'
