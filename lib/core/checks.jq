@@ -60,10 +60,17 @@ def endpoint_status:
     "This snapshot does not establish low-latency reliability.";
     "Inspect during a representative audio workload. An idle graph may have no realtime thread; RTKit and shell limits alone are insufficient.")
     | .evidence = (if $report.realtime.pipewire_realtime_thread_observed != null then "observed" else "unavailable" end)),
+  check("performance"; "audio.graph";
+    (if .audio.graph.status == "observed" or .audio.graph.status == "idle" then "ok" else "unknown" end);
+    (if .audio.graph.status == "observed" then "Active audio driver clocks observed"
+     elif .audio.graph.status == "idle" then "No running audio driver observed in this sample"
+     else "Active audio driver clocks could not be sampled" end);
+    "Driver periods describe graph scheduling, not hardware round-trip latency or recording reliability.";
+    "Refresh during your own audio workload. If unavailable, check pw-top -b -n 2 and PipeWire profiler availability; no stream is started by Studio."),
   (check("performance"; "audio.measurement"; "unknown";
-    "Active driver rate, quantum, XRUNs and round-trip latency: not measured";
+    "XRUNs and round-trip latency: not measured";
     "These collectors are not implemented yet; this is not a detected configuration problem.";
-    "Clock settings are configuration only. Use pw-top for driver observations; round-trip latency needs an appropriate loopback measurement.")
+    "The pw-top ERR column combines XRUNs and errors; round-trip latency needs an appropriate loopback measurement.")
     | .evidence = "not_implemented")
 ]
 | .status_scope = "operational"

@@ -27,3 +27,7 @@ check "$(jq '.audio.defaults.output = {status:"unavailable",reason:"node_not_fou
 check "$(jq '.system.omarchy.detected = false' "$fixture" | assess)" '.status == "unsupported"' 'unsupported environments remain explicit'
 check "$(jq '.system.omarchy.detected = false | .audio.wireplumber.state = "failed"' "$fixture" | assess)" '.status == "error"' 'observed failure retains precedence over unsupported environment'
 check "$report" 'all(.checks[]; (.impact|length)>0 and (.hint|length)>0)' 'checks explain impact and next steps'
+for graph_status in observed idle unavailable; do
+  check "$(jq --arg state "$graph_status" '.audio.graph.status = $state' "$fixture" | assess)" '.status == "ok"' 'sampling availability does not change operational health'
+done
+check "$(jq '.audio.graph.status = "observed"' "$fixture" | assess)" 'any(.checks[]; .id == "audio.graph" and .status == "ok" and .evidence == "observed")' 'driver observations are distinct from unimplemented latency measurements'

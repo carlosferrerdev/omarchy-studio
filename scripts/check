@@ -14,6 +14,7 @@ shellcheck -x "${shell_files[@]}"
 shfmt -d -i 2 -ci "${shell_files[@]}"
 ./tests/run
 ./tests/audio-defaults.sh
+./tests/audio-graph.sh
 ./tests/doctor-status.sh
 python3 tests/validate-schema.py
 node tests/plugin-model.cjs

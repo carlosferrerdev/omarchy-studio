@@ -303,13 +303,47 @@
                   },
                   "source": {
                     "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "observed",
+                      "idle",
+                      "unavailable"
+                    ]
+                  },
+                  "reason": {
+                    "enum": [
+                      "sampled",
+                      "no_running_audio_driver",
+                      "probe_unavailable",
+                      "no_audio_nodes",
+                      "incomplete_sample",
+                      "malformed_output",
+                      "snapshot_mismatch"
+                    ]
+                  },
+                  "scope": {
+                    "const": "audio_drivers"
+                  },
+                  "drivers": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/audioDriver"
+                    }
                   }
                 },
                 "required": [
                   "rate_hz",
                   "quantum_frames",
                   "source"
-                ]
+                ],
+                "dependentRequired": {
+                  "status": [
+                    "reason",
+                    "scope",
+                    "drivers"
+                  ]
+                }
               },
               "latency": {
                 "type": "object",
@@ -852,6 +886,33 @@
             "null"
           ],
           "minimum": 0
+        }
+      }
+    },
+    "audioDriver": {
+      "type": "object",
+      "required": [
+        "node_id",
+        "rate_hz",
+        "quantum_frames",
+        "theoretical_period_ms"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rate_hz": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quantum_frames": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "theoretical_period_ms": {
+          "type": "number",
+          "exclusiveMinimum": 0
         }
       }
     }

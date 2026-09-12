@@ -1,0 +1,8 @@
+S   ID  QUANT   RATE    WAIT    BUSY   W/Q   B/Q  ERR FORMAT           NAME
+C   20      0      0    ---     ---   ---   ---     7                  PRIVATE-AUDIO-DRIVER
+C   21      0      0    ---     ---   ---   ---     7                  PRIVATE-PROJECT-NAME
+C   22      0      0    ---     ---   ---   ---     7                  PRIVATE-CAMERA
+S   ID  QUANT   RATE    WAIT    BUSY   W/Q   B/Q  ERR FORMAT           NAME
+S   20      0      0    ---     ---   ---   ---     7                  PRIVATE-AUDIO-DRIVER
+I   21    256  44100    ---     ---   ---   ---     7                  PRIVATE-PROJECT-NAME
+R   22      1     30    ---     ---   ---   ---     7                  PRIVATE-CAMERA

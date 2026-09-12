@@ -24,6 +24,21 @@ with tempfile.TemporaryDirectory(prefix="studio-schema-") as directory:
         assert process.returncode == (4 if command == "doctor" else 0)
         document = json.loads(process.stdout)
         validator.validate(document)
+        if command != "version":
+            for sample in ("active", "idle"):
+                graph = subprocess.run([
+                    "jq", "-n", "-L", str(root / "lib/audio"),
+                    "--slurpfile", "dump", str(root / "tests/fixtures/graph-nodes.json"),
+                    "--rawfile", "sample", str(root / f"tests/fixtures/pw-top-{sample}.txt"),
+                    'include "graph"; audio_graph($dump[0]; $sample; true)',
+                ], capture_output=True, text=True, check=True)
+                document["audio"]["graph"] = json.loads(graph.stdout)
+                validator.validate(document)
+            document["audio"]["graph"]["drivers"] = [
+                {"node_id": 20, "rate_hz": 0, "quantum_frames": 128, "theoretical_period_ms": 0}
+            ]
+            assert not validator.is_valid(document), "Zero measured clocks must be rejected"
+            document["audio"]["graph"]["drivers"] = []
         document["schema_version"] = 99
         try:
             validator.validate(document)

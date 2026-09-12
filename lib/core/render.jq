@@ -22,6 +22,13 @@ def check_lines: "  [\(check_label)] \(.message)", (if .status != "ok" then "   
 "Clock settings (not active driver measurements)",
 "  Rate          \(.audio.clock_settings.rate_hz | value) Hz",
 "  Quantum       \(.audio.clock_settings.quantum_frames | value) frames",
+"",
+"Audio driver sample",
+(if .audio.graph.status == "observed" then .audio.graph.drivers[] |
+  "  Driver \(.node_id)     \(.rate_hz) Hz / \(.quantum_frames) frames",
+  "    Theoretical period: \((.theoretical_period_ms * 100 | round) / 100) ms (not round-trip latency)"
+ elif .audio.graph.status == "idle" then "  No running audio driver observed"
+ else "  Unavailable (\(.audio.graph.reason))" end),
 "  Round-trip    Not measured",
 "  XRUN monitor  Not implemented", "",
 "MIDI",

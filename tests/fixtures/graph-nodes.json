@@ -1,0 +1,32 @@
+[
+  {
+    "id": 20,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "node.name": "PRIVATE-AUDIO-DRIVER",
+        "media.class": "Audio/Sink"
+      }
+    }
+  },
+  {
+    "id": 21,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "node.name": "PRIVATE-PROJECT-NAME",
+        "media.class": "Stream/Output/Audio"
+      }
+    }
+  },
+  {
+    "id": 22,
+    "type": "PipeWire:Interface:Node",
+    "info": {
+      "props": {
+        "node.name": "PRIVATE-CAMERA",
+        "media.class": "Video/Source"
+      }
+    }
+  }
+]

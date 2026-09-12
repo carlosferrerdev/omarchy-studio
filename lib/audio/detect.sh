@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck source=graph.sh
+source "$STUDIO_ROOT/lib/audio/graph.sh"
 # Keep a single private in-memory snapshot; never expose or persist raw props.
 studio_audio_snapshot() {
   STUDIO_PW_DUMP='[]'
@@ -20,16 +22,17 @@ studio_audio_snapshot() {
 }
 
 studio_audio() {
-  local pipewire wireplumber pulse pw_version wp_version jack_version
+  local pipewire wireplumber pulse pw_version wp_version jack_version graph
   pipewire=$(studio_service pipewire.service)
   wireplumber=$(studio_service wireplumber.service)
   pulse=$(studio_service pipewire-pulse.service)
   pw_version=$(studio_package pipewire)
   wp_version=$(studio_package wireplumber)
   jack_version=$(studio_package pipewire-jack)
+  graph=$(studio_audio_graph)
   jq -L "$STUDIO_ROOT/lib/audio" --argjson pw "$pipewire" --argjson wp "$wireplumber" --argjson pulse "$pulse" \
     --argjson pw_version "$pw_version" --argjson wp_version "$wp_version" --argjson jack_version "$jack_version" \
-    --argjson reachable "$STUDIO_PW_REACHABLE" '
+    --argjson reachable "$STUDIO_PW_REACHABLE" --argjson graph "$graph" '
     include "defaults";
     def positive: (try tonumber catch null) | if type == "number" and . > 0 and floor == . then . else null end;
     . as $dump | ([$dump[] | select(.type == "PipeWire:Interface:Metadata" and .props["metadata.name"] == "settings")
@@ -41,6 +44,6 @@ studio_audio() {
          quantum_frames:($settings["clock.quantum"]|positive),forced_rate_hz:($settings["clock.force-rate"]|positive),
          forced_quantum_frames:($settings["clock.force-quantum"]|positive)},
        defaults:default_devices($dump; $reachable),
-       graph:{rate_hz:null,quantum_frames:null,source:"unavailable"},
+       graph:$graph,
        latency:{measured_round_trip_ms:null},xruns:{count:null,status:"unavailable"}}' <<<"$STUDIO_PW_DUMP"
 }
