@@ -26,7 +26,7 @@ A distribution, DAW, replacement audio server, universal plugin manager, telemet
 
 ## Features
 
-Bash CLI for version, status and doctor; PipeWire/WirePlumber service detection; ALSA and PipeWire audio inventory; MIDI endpoints; selected default input/output; conservative realtime observations. Doctor separates operational findings from optional capabilities and unimplemented measurements. See [CLI documentation](docs/CLI.md) for exact semantics and limitations.
+Bash CLI for version, status and doctor; PipeWire/WirePlumber service detection; ALSA and PipeWire audio inventory; MIDI endpoints; selected default input/output; bounded active driver sampling; conservative realtime observations. The CLI and panel distinguish audio in an idle state from unavailable sampling and label period duration as theoretical, never measured round-trip latency. Doctor separates operational findings from optional capabilities and unimplemented measurements. See [CLI documentation](docs/CLI.md) for exact semantics and limitations.
 
 ## Installation
 

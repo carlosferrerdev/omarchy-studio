@@ -23,7 +23,7 @@ During the schema transition, the running shell retained old QML components afte
 
 ## Following increments
 
-Active driver sampling comes next: research and test a bounded sampler of driver rate/quantum, preserving multiple independent drivers and idle behavior. Never label `pw-top` ERR as a pure hardware XRUN counter; its documented semantics include errors. Keep round-trip latency unmeasured without an explicit measurement method.
+Active driver sampling is implemented in 0.1.2: a bounded sampler preserves multiple independent drivers and idle behavior. Synthetic fixtures cover active clocks and failure cases; passive live observation confirms idle handling. The CLI and QML distinguish these observations from clock settings. Never label `pw-top` ERR as a pure hardware XRUN counter; its documented semantics include errors. Round-trip latency remains unmeasured without an explicit measurement method.
 
 Then validate a musical workflow with available physical hardware: playback, user-authorized recording, interface reconnection, and MIDI source/destination enumeration. Hardware tests remain opt-in. Do not start recording, install a DAW or disconnect devices automatically. Convert observed failures into redacted synthetic fixtures.
 

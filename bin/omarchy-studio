@@ -3,7 +3,7 @@
 set -euo pipefail
 export LC_ALL=C
 
-STUDIO_VERSION=0.1.1
+STUDIO_VERSION=0.1.2
 usage() {
   cat <<'HELP'
 Omarchy Studio - read-only music workstation diagnostics

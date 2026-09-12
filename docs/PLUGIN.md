@@ -8,7 +8,7 @@ The widget consumes CLI JSON schema 2; the manifest uses Omarchy schema 1. The w
 
 The maintainer confirmed the personal GitHub account [carlosferrerdev](https://github.com/carlosferrerdev), and the public GitHub API verified that login. The plugin ID is **`io.github.carlosferrerdev.omarchy-studio`**, outside the reserved `omarchy.*` namespace.
 
-The root `manifest.json` declares schema 1, version `0.1.1`, the bar widget entry point, and placement on the right. It passes the installed Omarchy manifest validator. Run `omarchy plugin validate .` before distribution.
+The root `manifest.json` declares schema 1, version `0.1.2`, the bar widget entry point, and placement on the right. It passes the installed Omarchy manifest validator. Run `omarchy plugin validate .` before distribution.
 
 After publication, installation uses `omarchy plugin add <actual-repository-url>`, followed by `omarchy plugin enable io.github.carlosferrerdev.omarchy-studio` after review. The repository URL is not assumed from the plugin ID. Publication is separate from local installation. A committed local checkout can also be installed with `omarchy plugin add /absolute/path/to/checkout --enable`; its installed copy follows that local Git origin. The plugin manager does not install CLI dependencies; document and verify them before enabling the widget.
 

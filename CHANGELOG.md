@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 — Unreleased
+
+- Sample active audio driver rate/quantum with a bounded, read-only PipeWire profiler query.
+- Preserve multiple independent drivers; distinguish idle audio from unavailable sampling.
+- Show observations in the CLI and shell panel with explicitly theoretical period duration.
+- Add optional schema 2 graph fields, conservative snapshot correlation and synthetic sampler coverage.
+- Keep XRUN counts and round-trip latency unmeasured. No audio streams, routes or configuration are changed.
+
 ## 0.1.1 — Unreleased
 
 - Resolve selected input and output from PipeWire default metadata without exposing internal node names.

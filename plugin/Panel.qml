@@ -71,7 +71,7 @@ Column {
   }
   Text {
     width: parent.width
-    text: "Session defaults; your DAW may use another route. Clock settings are not measured latency. Performance is not verified."
+    text: "Session defaults; your DAW may use another route. Period duration is not round-trip latency. Performance is not verified."
     wrapMode: Text.Wrap
     color: Color.foreground
     opacity: 0.7
