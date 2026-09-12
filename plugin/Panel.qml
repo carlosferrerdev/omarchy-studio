@@ -22,12 +22,27 @@ Column {
   }
   Text {
     width: parent.width
-    text: root.busy ? "Reading audio system..." : root.failure || (root.report ? root.report.status.toUpperCase() : "Unknown")
+    text: root.busy ? "Reading audio system..." : root.failure || Model.summary(root.report)
     textFormat: Text.PlainText
     wrapMode: Text.Wrap
     color: Color.foreground
     font.family: Style.font.family
     font.pixelSize: Style.font.body
+  }
+  Row {
+    spacing: Style.space(8)
+    Ui.Button {
+      text: "Refresh"
+      focusable: true
+      enabled: !root.busy
+      onClicked: root.refreshRequested()
+    }
+    Ui.Button {
+      text: "Doctor"
+      focusable: true
+      enabled: !root.busy
+      onClicked: root.doctorRequested()
+    }
   }
   Repeater {
     model: Model.rows(root.report)
@@ -56,7 +71,7 @@ Column {
   }
   Text {
     width: parent.width
-    text: "Clock settings are not measured latency. Audio performance has not been verified."
+    text: "Session defaults; your DAW may use another route. Clock settings are not measured latency. Performance is not verified."
     wrapMode: Text.Wrap
     color: Color.foreground
     opacity: 0.7
@@ -64,11 +79,11 @@ Column {
     font.pixelSize: Style.font.body
   }
   Repeater {
-    model: root.report && root.report.command === "doctor" ? root.report.checks.filter(function(check) { return check.status !== "ok" }) : []
+    model: Model.findings(root.report)
     delegate: Text {
       required property var modelData
       width: root.width
-      text: "[" + modelData.status + "] " + modelData.message + "\n" + modelData.hint
+      text: Model.findingText(modelData)
       textFormat: Text.PlainText
       wrapMode: Text.Wrap
       color: Color.foreground
@@ -76,19 +91,5 @@ Column {
       font.pixelSize: Style.font.body
     }
   }
-  Row {
-    spacing: Style.space(8)
-    Ui.Button {
-      text: "Refresh"
-      focusable: true
-      enabled: !root.busy
-      onClicked: root.refreshRequested()
-    }
-    Ui.Button {
-      text: "Doctor"
-      focusable: true
-      enabled: !root.busy
-      onClicked: root.doctorRequested()
-    }
-  }
+
 }

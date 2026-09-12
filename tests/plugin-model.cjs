@@ -1,23 +1,48 @@
 const assert = require('node:assert/strict');
-const { readReport, rows, quantity } = require('../plugin/Model.js');
+const { readReport, rows, quantity, summary, endpointText, findings, findingText } = require('../plugin/Model.js');
+const output = { status: 'selected', name: 'Studio "A"', state: 'suspended', kind: 'device' };
 const report = {
-  schema_version: 2, command: 'status', status: 'warning', checks: [],
-  audio: { pipewire: { reachable: true }, wireplumber: { state: 'active' }, clock_settings: { rate_hz: 48000, quantum_frames: 128 } },
+  schema_version: 2, command: 'status', status: 'ok', status_scope: 'operational', checks: [],
+  audio: {
+    pipewire: { reachable: true }, wireplumber: { state: 'active' },
+    clock_settings: { rate_hz: 48000, quantum_frames: 128 },
+    defaults: { scope: 'session_defaults', output, input: { status: 'not_selected' } }
+  },
   hardware: { devices: [{ name: 'Studio "A"' }] }, midi: { status: 'ok', ports: [] }
 };
-assert.equal(readReport(JSON.stringify(report)).status, 'warning');
+assert.equal(readReport(JSON.stringify(report)).status, 'ok');
+assert.equal(rows(report)[0].title, 'Default output');
 assert.equal(rows(report)[0].value, 'Studio "A"');
+assert.equal(rows(report)[1].value, 'None selected');
 assert.equal(rows(report)[3].value, '48000 Hz / 128 frames');
-assert.equal(rows(report)[4].value, 'None observed (ok)');
+assert.equal(rows(report)[4].value, 'None observed');
+assert.equal(summary(report), 'Audio services available');
+assert.equal(summary({ ...report, status: 'unknown' }), 'Diagnosis incomplete');
+assert.equal(endpointText({ ...output, kind: 'virtual' }), 'Studio "A" (virtual)');
+assert.equal(endpointText({ ...output, kind: 'monitor' }), 'Studio "A" (monitor source)');
+assert.equal(endpointText({ status: 'unavailable' }), 'Unknown - refresh to inspect again');
+assert.ok(endpointText({ ...output, state: 'error' }).includes('device error'));
 assert.equal(quantity(null, 'Hz'), 'Unknown');
 assert.equal(quantity(0, 'Hz'), 'Unknown');
 assert.equal(quantity(NaN, 'Hz'), 'Unknown');
 assert.throws(() => readReport('{broken'));
-assert.throws(() => readReport(JSON.stringify({ ...report, schema_version: 99 })));
-assert.throws(() => readReport(JSON.stringify({ ...report, hardware: null })));
-assert.throws(() => readReport(JSON.stringify({ ...report, command: 'version' })));
-assert.throws(() => readReport(JSON.stringify({ ...report, hardware: { devices: [null] } })));
-assert.throws(() => readReport(JSON.stringify({ ...report, midi: { ports: [null] } })));
-assert.throws(() => readReport(JSON.stringify({ ...report, checks: [null] })));
+for (const schema_version of [1, 99]) assert.throws(() => readReport(JSON.stringify({ ...report, schema_version })));
+for (const override of [
+  { status_scope: 'everything' }, { hardware: null }, { command: 'version' },
+  { hardware: { devices: [null] } }, { midi: { ports: [null] } }, { checks: [null] },
+  { audio: { ...report.audio, defaults: null } },
+  { audio: { ...report.audio, defaults: { ...report.audio.defaults, input: { status: 'selected', name: null } } } }
+]) assert.throws(() => readReport(JSON.stringify({ ...report, ...override })));
+const baseCheck = { id: 'test', status: 'unknown', evidence: 'unavailable', message: 'Observation missing', impact: 'Impact', hint: 'Next step' };
+const measurement = { ...baseCheck, category: 'performance', evidence: 'not_implemented' };
+const failure = { ...baseCheck, category: 'health', status: 'error', evidence: 'observed' };
+const doctor = { ...report, command: 'doctor', checks: [measurement, failure] };
+readReport(JSON.stringify(doctor));
+assert.equal(findings(doctor)[0], failure);
+assert.ok(findingText(measurement).startsWith('Not measured:'));
+assert.ok(findingText(failure).startsWith('Needs attention:'));
+assert.deepEqual(findings(report), []);
+assert.equal(rows(doctor).at(-1).title, 'Audio device inventory');
+assert.equal(doctor.checks[0], measurement, 'sorting must not mutate the report');
 assert.equal(rows(null).length, 0);
-console.log('ok - plugin reads schema 2, handles unknown values and rejects invalid reports');
+console.log('ok - plugin displays operational health and selected defaults, rejects invalid schemas, and prioritizes actual findings');
