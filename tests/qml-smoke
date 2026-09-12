@@ -12,6 +12,7 @@ trap 'rm -rf -- "$scratch"' EXIT
 ln -s "$shell_path/Ui" "$scratch/Ui"
 ln -s "$shell_path/Commons" "$scratch/Commons"
 plugin_path=$(node -e 'console.log(JSON.stringify(require("node:url").pathToFileURL(process.argv[1]).href))' "$root/plugin")
+plugin_id=$(jq -c '.id' "$root/manifest.json")
 cat >"$scratch/shell.qml" <<QML
 import QtQuick
 import Quickshell
@@ -19,7 +20,7 @@ import $plugin_path as Studio
 ShellRoot {
   Studio.BarWidget {
     id: widget
-    moduleName: "test.studio"
+    moduleName: $plugin_id
     Component.onCompleted: refresh("status")
     onReportChanged: if (report) {
       console.log("STUDIO_QML_OK schema=" + report.schema_version)
